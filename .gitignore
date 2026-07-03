@@ -1,0 +1,38 @@
+# devkitPro build artifacts
+build/
+*.3dsx
+*.elf
+*.smdh
+*.cia
+*.map
+*.lst
+banner.bnr
+
+# Generated graphics (built from gfx/*.t3s)
+romfs/gfx/*.t3x
+*.t3x
+
+# Generated audio (copied from assets/ into romfs by the Makefile)
+romfs/audio/
+
+# CIA packaging tools (fetch these yourself - see README "Build the CIA")
+tools/cia/
+
+# Companion website (kept out of the game repo)
+SITE_exclude/
+
+# Host test build
+tests/build/
+tests/petpal_tests
+tests/petpal_tests.exe
+
+# Local save data (when testing on host)
+save.bin
+save.bak
+backups/
+
+# Editor / tooling / OS cruft
+.claude/
+.vscode/
+.DS_Store
+Thumbs.db
