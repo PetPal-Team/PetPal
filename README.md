@@ -1,3 +1,5 @@
+# FOR TESTERS JOIN THIS: https://discord.gg/6hwsE4WNDj
+
 # 🐾 PetPal — a StreetPass-style Virtual Pet for the Nintendo 3DS
 
 PetPal is a homebrew virtual-pet game in the spirit of the StreetPass era. You
