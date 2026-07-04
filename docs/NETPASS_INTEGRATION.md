@@ -72,7 +72,7 @@ Two implementations ship:
   a from-scratch **`cecd:u` IPC client** (libctru ships no CECD bindings, so the
   raw service IPC is implemented directly). Command IDs, parameter layouts, and
   the CEC structures come from 3dbrew + the Citra/Azahar HLE. PetPal's box is
-  keyed by a fixed CEC program id (`kCecProgramId = 0x000FF3FF`, derived from the
+  keyed by a fixed CEC program id (`kCecProgramId = 0x000F00D5`, derived from the
   RSF UniqueId) so all installs match.
   * `init()` →
     1. `srvGetServiceHandle("cecd:u")` + `GetCecdState` handshake.
@@ -181,8 +181,8 @@ Legendary Friend.
 ## Provisioning the CEC box (device)
 
 To receive StreetPass/NetPass traffic, PetPal must own a **CEC message box**
-keyed by a stable, unique program id (`kCecProgramId = 0x000FF3FF` in
-`CecdTransport.cpp`, derived from the RSF UniqueId `0xff3ff`). `init()` now does
+keyed by a stable, unique program id (`kCecProgramId = 0x000F00D5` in
+`CecdTransport.cpp`, derived from the RSF UniqueId `0xf00d5`). `init()` now does
 this automatically each launch:
 
 1. Open the box, creating it if missing (cecd fills in `private_id`/`hmac_key`).

@@ -12,8 +12,9 @@
 #    * FileSystemAccess: DirectSdmc(+Write) -> SD access for saves under
 #                           sdmc:/3ds/PetPal (libctru mounts SD before main()).
 #
-#  NOTE: UniqueId 0xff3ff is the conventional homebrew id. Change it before any
-#  real distribution so two homebrew titles don't share a TitleID.
+#  NOTE: UniqueId is a custom PetPal id (0xf00d5). The template default 0xff3ff
+#  is shared by many unmodified homebrew (IP-Cam Viewer, SCR2JPG, 3DS Button
+#  Tester, ...), so PetPal uses its own to avoid a TitleID collision.
 # =============================================================================
 BasicInfo:
   Title                   : "PetPal"
@@ -25,7 +26,7 @@ RomFs:
 
 TitleInfo:
   Category                : Application
-  UniqueId                : 0xff3ff
+  UniqueId                : 0xf00d5
 
 Option:
   UseOnSD                 : true  # true if App is to be installed to SD

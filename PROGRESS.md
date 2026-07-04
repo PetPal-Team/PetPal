@@ -383,7 +383,7 @@ Things that aren't obvious from the code and will save the next agent time:
   is how v2 stays backward-compatible with v1 saves. Follow that pattern.
 - **RSF is derived from ftpd.** `AffinityMask: 1` is load-bearing (0 = boot hang).
   Service access already granted: `cecd:u`, `http:C`, `ssl:C`, `soc:U`. UniqueId
-  `0xff3ff`.
+  `0xf00d5` (changed from the template default `0xff3ff` to avoid a TitleID collision).
 - **CECD is hand-rolled IPC** (`CecdTransport.cpp`) because libctru has none —
   command IDs/structs came from 3dbrew + Citra. It compiles but is the single
   biggest untested-on-hardware risk.

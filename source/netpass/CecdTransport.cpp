@@ -35,8 +35,8 @@ Handle g_cecd = 0;
 
 // CEC "program id" identifying PetPal's message box. Must be identical across
 // all PetPal installs so boxes match, and stable across versions. Derived from
-// our title's unique id (0xff3ff). Change alongside the RSF UniqueId.
-constexpr u32 kCecProgramId = 0x000FF3FF;
+// our title's unique id (0xf00d5). Change alongside the RSF UniqueId.
+constexpr u32 kCecProgramId = 0x000F00D5;
 
 enum class Path : u32 {
     MboxList   = 1,
@@ -580,8 +580,8 @@ std::string CecdTransport::selfTest() {
     // unique-id form and the low-title-id form so we can tell an id-derivation
     // problem apart from "no valid box exists at all".
     CecMBoxInfo mbox;
-    const u32 idA = titleId_;      // as configured (unique id 0x000FF3FF)
-    const u32 idB = 0x0FF3FF00u;   // low title-id form
+    const u32 idA = titleId_;      // as configured (unique id 0x000F00D5)
+    const u32 idB = 0x0F00D500u;   // low title-id form
     u32 gotA = 0, gotB = 0;
     Result rcA = cmdOpenAndRead(idA, Path::MboxInfo, 0, &mbox, sizeof(mbox), &gotA);
     const u16 magicA = mbox.magic;
