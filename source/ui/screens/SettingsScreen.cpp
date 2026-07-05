@@ -109,9 +109,10 @@ void SettingsScreen::drawTop() {
     formatDate(m.lastSavedAt, date, sizeof(date));
     std::snprintf(line, sizeof(line), "Last saved: %s", date);
     draw::textCentered(font, buf, line, kTopWidth * 0.5f, 124, 0.45f, toC2D(kTextMuted));
-    std::snprintf(line, sizeof(line), "PetPal v%lu.%lu",
+    std::snprintf(line, sizeof(line), "PetPal v%lu.%lu.%lu",
                   (unsigned long)((kAppVersion >> 16) & 0xFF),
-                  (unsigned long)((kAppVersion >> 8) & 0xFF));
+                  (unsigned long)((kAppVersion >> 8) & 0xFF),
+                  (unsigned long)(kAppVersion & 0xFF));
     draw::textCentered(font, buf, line, kTopWidth * 0.5f, 160, 0.45f, toC2D(kTextMuted));
 }
 

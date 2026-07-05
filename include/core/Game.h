@@ -118,6 +118,10 @@ private:
     void autosaveTick(float dt);
     AchievementContext buildAchievementContext() const;
 
+    // Boot version check (device only). True if the server's latest version is
+    // newer than kAppVersion. Fails open (returns false) on any network error.
+    bool fetchUpdateStatus();
+
     std::string      baseDir_;
     PersistentState  state_;
     SaveManager      save_;
@@ -128,6 +132,7 @@ private:
     Timestamp lastTick_   = 0;
     float     autosaveAcc_ = 0.0f;
     bool      quit_        = false;
+    bool      updateAvailable_ = false; // server reported a newer version at boot
 };
 
 } // namespace petpal

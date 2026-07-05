@@ -5,6 +5,7 @@
 #include "core/Names.h"
 #include "audio/Audio.h"
 #include "util/Log.h"
+#include "util/NameFilter.h"
 
 #ifdef __3DS__
 #include <3ds.h>
@@ -97,7 +98,12 @@ bool Game::init() {
 #ifdef __3DS__
     // 2b) Networking for online code redemption (sockets + curl). Non-fatal:
     // the app still runs offline; only the redeem feature needs this.
-    if (!netInit()) PP_WARN("network init failed; online codes unavailable");
+    if (!netInit()) {
+        PP_WARN("network init failed; online codes unavailable");
+    } else {
+        // Ask the server for the latest version once at boot (fails open).
+        updateAvailable_ = fetchUpdateStatus();
+    }
 #endif
 
     // 2c) Audio (streamed BGM + SFX). Non-fatal: silent if the DSP is
@@ -117,6 +123,10 @@ bool Game::init() {
 
 void Game::run() {
 #ifdef __3DS__
+    // If the server reports a newer version, nag once before the app opens.
+    if (updateAvailable_)
+        ui_.showModalMessage("Please update your app.", "Press START to close.");
+
     u64 prevTick = svcGetSystemTick();
     float netAcc = 0.0f;
 
@@ -149,6 +159,66 @@ void Game::shutdown() {
     ui_.shutdown();
 #ifdef __3DS__
     netExit();
+#endif
+}
+
+// -----------------------------------------------------------------------------
+//  Boot-time version check. Asks the server for the latest version and reports
+//  whether we're behind. Fails open: any network problem returns false so
+//  offline players are never nagged.
+// -----------------------------------------------------------------------------
+#ifdef __3DS__
+namespace {
+size_t verWriteCb(char* ptr, size_t size, size_t nmemb, void* ud) {
+    const size_t bytes = size * nmemb;
+    static_cast<std::string*>(ud)->append(ptr, bytes);
+    return bytes;
+}
+// "0.1.2" -> 0x000102. Returns 0 unless at least "major.minor" parses.
+uint32_t parseVersion(const std::string& s) {
+    unsigned M = 0, m = 0, p = 0;
+    if (std::sscanf(s.c_str(), "%u.%u.%u", &M, &m, &p) < 2) return 0;
+    return ((M & 0xFFu) << 16) | ((m & 0xFFu) << 8) | (p & 0xFFu);
+}
+} // namespace
+#endif
+
+bool Game::fetchUpdateStatus() {
+#ifdef __3DS__
+    CURL* c = curl_easy_init();
+    if (!c) return false;
+    std::string body;
+    curl_easy_setopt(c, CURLOPT_URL, "https://teampetpal.com/api/version");
+    curl_easy_setopt(c, CURLOPT_WRITEFUNCTION, verWriteCb);
+    curl_easy_setopt(c, CURLOPT_WRITEDATA, &body);
+    curl_easy_setopt(c, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT, 4L);   // keep boot snappy
+    curl_easy_setopt(c, CURLOPT_TIMEOUT, 6L);
+    curl_easy_setopt(c, CURLOPT_USERAGENT, "PetPal-3DS");
+    curl_easy_setopt(c, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(c, CURLOPT_NOPROGRESS, 1L);
+    curl_easy_setopt(c, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(c, CURLOPT_SSL_VERIFYHOST, 0L);
+
+    CURLcode res = curl_easy_perform(c);
+    long httpStatus = 0;
+    curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &httpStatus);
+    curl_easy_cleanup(c);
+    if (res != CURLE_OK || httpStatus != 200) return false; // fail open
+
+    std::string latest;
+    const size_t pos = body.find("latest=");
+    if (pos != std::string::npos) {
+        const size_t vs = pos + 7;
+        const size_t eol = body.find_first_of("\r\n", vs);
+        latest = body.substr(vs, eol == std::string::npos ? std::string::npos : eol - vs);
+    }
+    const uint32_t latestV = parseVersion(latest);
+    PP_LOG("version check: latest='%s' (0x%06lx) vs app 0x%06lx", latest.c_str(),
+           (unsigned long)latestV, (unsigned long)(kAppVersion & 0x00FFFFFFu));
+    return latestV != 0 && (kAppVersion & 0x00FFFFFFu) < latestV;
+#else
+    return false;
 #endif
 }
 
@@ -270,7 +340,13 @@ void Game::confirmEvolution() {
 // -----------------------------------------------------------------------------
 //  StreetPass / NetPass
 // -----------------------------------------------------------------------------
-void Game::processOneEncounter(const PetPalPacket& pkt, Timestamp when) {
+void Game::processOneEncounter(const PetPalPacket& in, Timestamp when) {
+    // Filter names received from other players. This is defense-in-depth next to
+    // the server filter, and because ingest() refreshes a known friend's name on
+    // every meeting, it also re-cleans an already-saved friend on re-encounter.
+    PetPalPacket pkt = in;
+    cleanName(pkt.name, sizeof(pkt.name));
+
     MeetingOutcome out = friends().ingest(pkt, when);
 
     // Pet gains XP/friendship from the encounter.

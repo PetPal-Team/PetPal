@@ -18,7 +18,7 @@ namespace petpal {
 // -----------------------------------------------------------------------------
 //  Versioning
 // -----------------------------------------------------------------------------
-constexpr uint32_t kAppVersion      = 0x00010000; // 1.0.0  (MMmmpp packed)
+constexpr uint32_t kAppVersion      = 0x00000102; // 0.1.2  (major.minor.patch, one byte each)
 constexpr uint32_t kSaveMagic       = 0x4C415050; // 'PPAL' little-endian "PPAL"
 constexpr uint16_t kSaveVersion     = 2; // v2: pet transform (codes) fields
 constexpr uint32_t kNetPassMagic    = 0x50455450; // 'PTEP' -> "PTEP" PetPal tag

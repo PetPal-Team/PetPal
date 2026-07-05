@@ -3,6 +3,7 @@
 // =============================================================================
 #include "pets/Pet.h"
 #include "core/Names.h"   // itemCategory()
+#include "util/NameFilter.h"
 #include "util/Random.h"
 #include <algorithm>
 #include <cstring>
@@ -69,6 +70,7 @@ void Pet::setName(const char* name) {
     name_.assign(name);
     if (static_cast<int>(name_.size()) > kMaxPetNameLen)
         name_.resize(kMaxPetNameLen);
+    if (isBadName(name_.c_str())) name_ = "Pal";  // no bad names, even our own
 }
 
 void Pet::setColors(PetColor primary, PetColor secondary, PetColor accent) {

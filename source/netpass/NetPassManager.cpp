@@ -6,6 +6,7 @@
 #include "netpass/NetPassManager.h"
 #include "util/Crc32.h"
 #include "util/Log.h"
+#include "util/NameFilter.h"
 #include <cstring>
 
 namespace petpal {
@@ -23,6 +24,7 @@ PetPalPacket NetPassManager::buildPacket(const Pet& pet, ItemId gift, uint16_t g
     std::memset(pkt.name, 0, sizeof(pkt.name));
     std::strncpy(pkt.name, pet.name(), kMaxPetNameLen);
     pkt.name[kMaxPetNameLen] = '\0';
+    cleanName(pkt.name, sizeof(pkt.name)); // never broadcast a bad name
 
     pkt.species = static_cast<uint8_t>(pet.species());
     pkt.stage   = static_cast<uint8_t>(pet.stage());

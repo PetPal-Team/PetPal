@@ -23,6 +23,7 @@ SRCS := \
     ../source/netpass/NetPassManager.cpp \
     ../source/save/SaveManager.cpp \
     ../source/util/Crc32.cpp \
+    ../source/util/NameFilter.cpp \
     ../source/util/Time.cpp
 
 all: $(BIN)

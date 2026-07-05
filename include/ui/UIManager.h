@@ -87,6 +87,10 @@ public:
     enum class Celebration { LevelUp, Evolution, NewFriend, Achievement, Reward };
     void celebrate(Celebration kind);
 
+    // Run a blocking full-screen message on the top screen until the player
+    // presses START. Used for the boot "please update" prompt. No-op off device.
+    void showModalMessage(const char* line1, const char* line2);
+
 private:
     void scanInput();
     Screen* current();

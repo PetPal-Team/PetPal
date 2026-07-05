@@ -269,6 +269,43 @@ bool UIManager::tick(float dt) {
     return true;
 }
 
+void UIManager::showModalMessage(const char* line1, const char* line2) {
+#ifdef __3DS__
+    if (!started_) return;
+    while (aptMainLoop()) {
+        hidScanInput();
+        if (hidKeysDown() & KEY_START) break;
+
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+        C2D_TargetClear(top_, toC2D(theme::kBgTop));
+        C2D_SceneBegin(top_);
+        C2D_ViewReset();
+        drawBackground();
+
+        const float cardW = 320.0f, cardH = 108.0f;
+        const float cardX = (kTopWidth - cardW) * 0.5f, cardY = 66.0f;
+        draw::card(cardX, cardY, cardW, cardH, 18.0f,
+                   C2D_Color32(20, 32, 43, 240), C2D_Color32(0, 0, 0, 60));
+        const float cx = kTopWidth * 0.5f;
+        if (line1) draw::textCentered(font_, dynBuf_, line1, cx, cardY + 42.0f, 0.66f,
+                                      C2D_Color32(255, 255, 255, 255));
+        if (line2) draw::textCentered(font_, dynBuf_, line2, cx, cardY + 78.0f, 0.48f,
+                                      C2D_Color32(180, 210, 190, 255));
+
+        C2D_TargetClear(bottom_, toC2D(theme::kBgBottom));
+        C2D_SceneBegin(bottom_);
+        C2D_ViewReset();
+
+        C3D_FrameEnd(0);
+        C2D_TextBufClear(dynBuf_);
+    }
+#else
+    (void)line1;
+    (void)line2;
+#endif
+}
+
 #ifdef __3DS__
 void UIManager::drawIcon(Icon id, float cx, float cy, float size, u32 tint) {
     if (!sprites_) return;
