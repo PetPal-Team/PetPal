@@ -155,6 +155,19 @@ Then `entryCount` records (stored newest-first):
 | u64  | playSeconds |
 | u8   | onboarded (0/1) |
 
+### 10. Pet transform (v2+)
+| Type | Field |
+|------|-------|
+| u8   | transformForm |
+| u64  | transformExpiry (Unix seconds) |
+
+### 11. Account (v3+) — server identity / 3DS link
+| Type | Field |
+|------|-------|
+| str  | id (`PP-XXXX-XXXX`, empty until first online boot) |
+| str  | token (per-device credential; empty after linking) |
+| u8   | linked (0/1 — adopted a phone account's id) |
+
 ## Size budget
 
 A fresh save is well under 1 KB. Caps keep growth bounded:

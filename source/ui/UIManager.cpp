@@ -306,6 +306,47 @@ void UIManager::showModalMessage(const char* line1, const char* line2) {
 #endif
 }
 
+void UIManager::showBannedScreen(const char* id) {
+#ifdef __3DS__
+    if (!started_) return;
+    const u32 bg    = C2D_Color32(40, 12, 12, 255);   // deep red
+    const u32 red   = C2D_Color32(226, 59, 59, 255);
+    const u32 white = C2D_Color32(255, 255, 255, 255);
+    const u32 pink  = C2D_Color32(240, 200, 200, 255);
+    const std::string idLine = std::string("Pet ID: ") + (id && id[0] ? id : "-");
+    const float cx = kTopWidth * 0.5f;
+
+    while (aptMainLoop()) {
+        hidScanInput();
+        if (hidKeysDown() & KEY_START) break;
+
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+        C2D_TargetClear(top_, bg);
+        C2D_SceneBegin(top_);
+        C2D_ViewReset();
+        C2D_DrawCircleSolid(cx, 60.0f, 0.0f, 30.0f, red);           // red "wrong" disc
+        draw::textCentered(font_, dynBuf_, "X", cx, 48.0f, 0.95f, white);
+        draw::textCentered(font_, dynBuf_, "401 Forbidden", cx, 116.0f, 0.80f, white);
+        draw::textCentered(font_, dynBuf_, "This pet has been banned.", cx, 150.0f, 0.50f, pink);
+        draw::textCentered(font_, dynBuf_, idLine.c_str(), cx, 182.0f, 0.50f, white);
+
+        C2D_TargetClear(bottom_, bg);
+        C2D_SceneBegin(bottom_);
+        C2D_ViewReset();
+        draw::textCentered(font_, dynBuf_, "Contact support with your Pet ID.",
+                           kBottomWidth * 0.5f, 96.0f, 0.46f, pink);
+        draw::textCentered(font_, dynBuf_, "Press START to exit.",
+                           kBottomWidth * 0.5f, 136.0f, 0.44f, white);
+
+        C3D_FrameEnd(0);
+        C2D_TextBufClear(dynBuf_);
+    }
+#else
+    (void)id;
+#endif
+}
+
 #ifdef __3DS__
 void UIManager::drawIcon(Icon id, float cx, float cy, float size, u32 tint) {
     if (!sprites_) return;

@@ -16,7 +16,7 @@ public:
     void drawBottom() override;
 
 private:
-    enum Row { MusicVol = 0, SfxVol, AutoSave, Rumble, EnterCode, ExportBackup, RowCount };
+    enum Row { MusicVol = 0, SfxVol, AutoSave, Rumble, EnterCode, LinkPhone, ExportBackup, RowCount };
     int  cursor_ = 0;
     std::string toast_;
     float toastTimer_ = 0.0f;

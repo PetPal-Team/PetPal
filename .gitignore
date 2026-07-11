@@ -21,6 +21,19 @@ tools/cia/
 # Companion website (kept out of the game repo)
 SITE_exclude/
 
+# Discord bot (kept out of the game repo - holds the bot token)
+BOT_exclude/
+
+# Admin panel (kept out of the game repo - moderator tooling / KV ids)
+ADMIN_exclude/
+
+# Android app (kept out of the game repo)
+Android_EXCLUDE/
+
+# Catch-all: any folder whose name ends in _EXCLUDE / _exclude
+*_EXCLUDE/
+*_exclude/
+
 # Host test build
 tests/build/
 tests/petpal_tests
@@ -36,3 +49,7 @@ backups/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Local tooling caches (wrangler state, python bytecode)
+.wrangler/
+__pycache__/

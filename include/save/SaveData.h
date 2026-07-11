@@ -13,6 +13,7 @@
 #include "adventure/Adventure.h"
 #include "achievements/Achievements.h"
 #include "util/Time.h"
+#include <string>
 
 namespace petpal {
 
@@ -30,6 +31,16 @@ struct SaveMeta {
     Timestamp lastSavedAt  = 0; // updated on every write
     uint64_t  playSeconds  = 0; // total time in-app
     bool      onboarded    = false; // has the player created their pet yet?
+};
+
+// Server-side identity (minted by teampetpal.com on first online boot). The id
+// is the human-typeable PP-XXXX-XXXX shown for support + used for the boot
+// ban-check; the token is this console's own credential (not a shared secret).
+// `linked` is set once this console has joined a phone account via /api/link.
+struct Account {
+    std::string id;       // "PP-XXXX-XXXX" (empty until first online boot)
+    std::string token;    // per-device credential (empty after linking)
+    bool        linked = false; // adopted a phone account's id
 };
 
 // World progression (locations the pet has unlocked). Town is free.
@@ -57,6 +68,7 @@ struct PersistentState {
     World         world;
     Settings      settings;
     SaveMeta      meta;
+    Account       account;   // v3: server identity / 3DS-link
 };
 
 } // namespace petpal

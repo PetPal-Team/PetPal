@@ -84,6 +84,22 @@ void SettingsScreen::update(float dt, const Input& in) {
                 }
             }
             break;
+        case LinkPhone:
+            if (in.pressed(KEY_A)) {
+                // Type the phone's Link ID (shown in the Android app's Settings)
+                // to tie this console to that account. Brief pause while it calls.
+                char code[16] = {0};
+                SwkbdState kb;
+                swkbdInit(&kb, SWKBD_TYPE_NORMAL, 2, sizeof(code) - 1);
+                swkbdSetHintText(&kb, "Phone Link ID: PP-XXXX-XXXX");
+                swkbdSetValidation(&kb, SWKBD_NOTBLANK_NOTEMPTY, 0, 0);
+                if (swkbdInputText(&kb, code, sizeof(code)) == SWKBD_BUTTON_RIGHT) {
+                    const bool ok = game_->linkToPhone(code);
+                    toast_ = ok ? "Linked to phone!" : "Link failed - check the ID.";
+                    toastTimer_ = 4.0f;
+                }
+            }
+            break;
         case ExportBackup:
             if (in.pressed(KEY_A)) {
                 std::string path;
@@ -109,11 +125,15 @@ void SettingsScreen::drawTop() {
     formatDate(m.lastSavedAt, date, sizeof(date));
     std::snprintf(line, sizeof(line), "Last saved: %s", date);
     draw::textCentered(font, buf, line, kTopWidth * 0.5f, 124, 0.45f, toC2D(kTextMuted));
+    const std::string& acct = game_->accountId();
+    std::snprintf(line, sizeof(line), "Pet ID: %s", acct.empty() ? "(offline)" : acct.c_str());
+    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 142, 0.45f, toC2D(kPrimaryDk));
+
     std::snprintf(line, sizeof(line), "PetPal v%lu.%lu.%lu",
                   (unsigned long)((kAppVersion >> 16) & 0xFF),
                   (unsigned long)((kAppVersion >> 8) & 0xFF),
                   (unsigned long)(kAppVersion & 0xFF));
-    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 160, 0.45f, toC2D(kTextMuted));
+    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 164, 0.45f, toC2D(kTextMuted));
 }
 
 void SettingsScreen::drawBottom() {
@@ -122,7 +142,7 @@ void SettingsScreen::drawBottom() {
     C2D_TextBuf buf = ui_->dynBuf();
     Settings& s = game_->settings();
 
-    const float top = 10.0f, rowH = 31.0f;
+    const float top = 10.0f, rowH = 28.0f;   // 7 rows fit above the hint line
     char val[32];
 
     auto row = [&](Row r, const char* label, const char* value) {
@@ -139,6 +159,7 @@ void SettingsScreen::drawBottom() {
     row(AutoSave, "Auto-save", s.autoSave ? "On" : "Off");
     row(Rumble,   "Rumble",    s.rumble ? "On" : "Off");
     row(EnterCode, "Enter code", "Press A");
+    row(LinkPhone, "Link to phone", game_->state().account.linked ? "Linked" : "Press A");
     row(ExportBackup, "Export backup", "Press A");
 
     // Modal loading spinner while a code is being checked over the network.

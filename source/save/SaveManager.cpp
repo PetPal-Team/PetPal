@@ -146,6 +146,11 @@ void SaveManager::encodeBody(ByteWriter& w, const PersistentState& s) {
     // --- v2: pet transform (redeem codes) ---
     w.putU8(static_cast<uint8_t>(s.pet.transformForm_));
     w.putU64(s.pet.transformExpiry_);
+
+    // --- v3: server account (id/token/linked) ---
+    w.putString(s.account.id);
+    w.putString(s.account.token);
+    w.putU8(s.account.linked ? 1 : 0);
 }
 
 bool SaveManager::decodeBody(ByteReader& r, PersistentState& s, uint16_t version) {
@@ -244,6 +249,15 @@ bool SaveManager::decodeBody(ByteReader& r, PersistentState& s, uint16_t version
     } else {
         s.pet.transformForm_   = TransformForm::None;
         s.pet.transformExpiry_ = 0;
+    }
+
+    // --- v3: server account (absent in v1/v2 saves; stays empty) ---
+    if (version >= 3) {
+        s.account.id     = r.getString();
+        s.account.token  = r.getString();
+        s.account.linked = r.getU8() != 0;
+    } else {
+        s.account = Account{};
     }
 
     return r.ok();

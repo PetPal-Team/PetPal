@@ -20,6 +20,7 @@ const char* const kSevere[] = {
     "asshole", "dumbass", "jackass", "dickhead", "cockhead", "bastard",
     "wanker", "wank", "bollocks", "arsehole", "twat", "nazi", "hitler", "kkk",
     "porn", "pornhub",
+    "herpy", "herpe", "herpes", "herpie",
 };
 // MILD: matched only as a whole word/token (short, ambiguous roots).
 const char* const kMild[] = {

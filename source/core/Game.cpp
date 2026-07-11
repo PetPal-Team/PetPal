@@ -4,6 +4,7 @@
 #include "core/Game.h"
 #include "core/Names.h"
 #include "audio/Audio.h"
+#include "netpass/AccountClient.h"
 #include "util/Log.h"
 #include "util/NameFilter.h"
 
@@ -101,6 +102,25 @@ bool Game::init() {
     if (!netInit()) {
         PP_WARN("network init failed; online codes unavailable");
     } else {
+        // Mint a server-side pet ID on the first online boot, so this console can
+        // be shown in the admin panel + banned. Saved immediately so we only ask
+        // once. (Offline consoles skip this and register on a later online boot.)
+        if (state_.account.id.empty()) {
+            RegisterResult rr = AccountClient::registerDevice("3ds");
+            if (rr.ok) {
+                state_.account.id = rr.id;
+                state_.account.token = rr.token;
+                requestSave();
+            }
+        }
+        // Boot ban-check. Fails open (BanState::Unknown on any network problem),
+        // so offline/erroring never locks out a legit player - only an explicit
+        // "banned" from the server blocks play.
+        if (!state_.account.id.empty()) {
+            banned_ = AccountClient::checkBanned(state_.account.id.c_str(),
+                                                 state_.account.token.c_str(),
+                                                 "3ds") == BanState::Yes;
+        }
         // Ask the server for the latest version once at boot (fails open).
         updateAvailable_ = fetchUpdateStatus();
     }
@@ -113,8 +133,9 @@ bool Game::init() {
         audio::setSfxVolume(state_.settings.sfxVolume / 100.0f);
     }
 
-    // 3) NetPass / StreetPass exchange.
-    if (netpass_.begin() && state_.meta.onboarded)
+    // 3) NetPass / StreetPass exchange. Skipped entirely for a banned console so
+    // a banned pet never uploads to the relay.
+    if (!banned_ && netpass_.begin() && state_.meta.onboarded)
         publishSelf();
 
     lastTick_ = nowSeconds();
@@ -123,6 +144,11 @@ bool Game::init() {
 
 void Game::run() {
 #ifdef __3DS__
+    // A banned pet can't play: show the red 401 screen and exit on START.
+    if (banned_) {
+        ui_.showBannedScreen(state_.account.id.c_str());
+        return;
+    }
     // If the server reports a newer version, nag once before the app opens.
     if (updateAvailable_)
         ui_.showModalMessage("Please update your app.", "Press START to close.");
@@ -241,6 +267,25 @@ void Game::createPet(Species species, const char* name) {
 
     publishSelf();
     requestSave();
+}
+
+// -----------------------------------------------------------------------------
+//  Link this console to a phone account (the Android app shows its PP-XXXX-XXXX
+//  Link ID). On success we adopt that shared id locally; the phone keeps the
+//  account's token, and our ban-checks (which are public) run against the shared
+//  id from now on. Local save data is untouched - linking only ties identities.
+// -----------------------------------------------------------------------------
+bool Game::linkToPhone(const char* targetId) {
+    if (!targetId || !targetId[0]) return false;
+    const bool ok = AccountClient::link(state_.account.id.c_str(),
+                                        state_.account.token.c_str(), targetId);
+    if (ok) {
+        state_.account.id = targetId;   // adopt the shared phone id
+        state_.account.token.clear();   // the shared account's token lives on the phone
+        state_.account.linked = true;
+        requestSave();
+    }
+    return ok;
 }
 
 // -----------------------------------------------------------------------------

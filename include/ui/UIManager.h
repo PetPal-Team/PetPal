@@ -91,6 +91,11 @@ public:
     // presses START. Used for the boot "please update" prompt. No-op off device.
     void showModalMessage(const char* line1, const char* line2);
 
+    // Blocking full-screen "banned" notice: a red ✗ + "401 Forbidden" + the pet
+    // id (for support). Shown at boot when the server reports this pet is banned.
+    // Returns when the player presses START. No-op off device.
+    void showBannedScreen(const char* id);
+
 private:
     void scanInput();
     Screen* current();

@@ -57,6 +57,13 @@ public:
 
     bool onboardingComplete() const { return state_.meta.onboarded; }
 
+    // ----- Server identity / ban ------------------------------------------
+    const std::string& accountId() const { return state_.account.id; }
+    bool               banned() const { return banned_; }
+    // Link this console to a phone account by its PP-XXXX-XXXX id. On success the
+    // console adopts targetId locally + saves. Returns false on any failure.
+    bool linkToPhone(const char* targetId);
+
     // ----- Onboarding -------------------------------------------------------
     void createPet(Species species, const char* name);
 
@@ -133,6 +140,7 @@ private:
     float     autosaveAcc_ = 0.0f;
     bool      quit_        = false;
     bool      updateAvailable_ = false; // server reported a newer version at boot
+    bool      banned_      = false;     // server reported this pet is banned at boot
 };
 
 } // namespace petpal

@@ -16,7 +16,9 @@
 #include "adventure/Adventure.h"
 #include "achievements/Achievements.h"
 #include "netpass/NetPassManager.h"
+#include "netpass/JsonLite.h"
 #include "save/SaveManager.h"
+#include "util/NameFilter.h"
 #include "util/Random.h"
 
 #include <cstdio>
@@ -175,6 +177,64 @@ static void testSaveRoundTrip() {
     CHECK(SaveManager::deserialize(blob.data(), blob.size(), c) == SaveError::Corrupt);
 }
 
+static void testAccountSave() {
+    std::printf("[account save v3]\n");
+    PersistentState a;
+    a.pet = Pet::createStarter(Species::Fox, "Zed");
+    a.meta.onboarded = true;
+    a.account.id     = "PP-AB12-CD34";
+    a.account.token  = "deadbeefcafef00d";
+    a.account.linked = true;
+
+    std::vector<uint8_t> blob = SaveManager::serialize(a);
+    PersistentState b;
+    CHECK(SaveManager::deserialize(blob.data(), blob.size(), b) == SaveError::None);
+    CHECK(b.account.id == "PP-AB12-CD34");
+    CHECK(b.account.token == "deadbeefcafef00d");
+    CHECK(b.account.linked == true);
+
+    // A fresh state round-trips an empty account (also the v1/v2 default).
+    PersistentState empty;
+    std::vector<uint8_t> blob2 = SaveManager::serialize(empty);
+    PersistentState d;
+    CHECK(SaveManager::deserialize(blob2.data(), blob2.size(), d) == SaveError::None);
+    CHECK(d.account.id.empty() && d.account.token.empty() && d.account.linked == false);
+}
+
+static void testJsonLite() {
+    std::printf("[jsonlite]\n");
+    using namespace jsonlite;
+    const std::string reg = "{\"status\":\"ok\",\"id\":\"PP-AB12-CD34\",\"token\":\"abc123\"}";
+    CHECK(field(reg, "status") == "ok");
+    CHECK(field(reg, "id") == "PP-AB12-CD34");
+    CHECK(field(reg, "token") == "abc123");
+    CHECK(field(reg, "missing").empty());
+
+    const std::string st = "{\"status\":\"ok\",\"known\":true,\"banned\":true,\"id\":\"PP-XX\"}";
+    CHECK(boolField(st, "banned", false) == true);
+    CHECK(boolField(st, "known", false) == true);
+    const std::string st2 = "{\"status\":\"ok\",\"banned\":false}";
+    CHECK(boolField(st2, "banned", true) == false);
+    CHECK(boolField(st2, "absent", true) == true);   // default when absent
+}
+
+static void testNameFilter() {
+    std::printf("[name filter]\n");
+    // "Herpy" + variants (leetspeak, caps, doubled letters, herpes family).
+    CHECK(isBadName("Herpy"));
+    CHECK(isBadName("H3rpy"));
+    CHECK(isBadName("Herrpy"));
+    CHECK(isBadName("HERPY"));
+    CHECK(isBadName("herpes"));
+    CHECK(isBadName("herpies"));
+    // Innocent look-alikes must pass.
+    CHECK(!isBadName("Sherpa"));
+    CHECK(!isBadName("Harper"));
+    CHECK(!isBadName("Happy"));
+    // Sanity: an existing severe word still trips.
+    CHECK(isBadName("sh1t"));
+}
+
 int main() {
     std::printf("PetPal model tests\n==================\n");
     testPetProgression();
@@ -183,6 +243,9 @@ int main() {
     testAchievements();
     testAdventure();
     testSaveRoundTrip();
+    testAccountSave();
+    testJsonLite();
+    testNameFilter();
 
     std::printf("==================\n%d checks, %d failure(s)\n", g_checks, g_failures);
     return g_failures == 0 ? 0 : 1;
