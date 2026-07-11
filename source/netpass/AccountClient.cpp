@@ -90,15 +90,17 @@ RegisterResult AccountClient::registerDevice(const char* device) {
     return rr;
 }
 
-BanState AccountClient::checkBanned(const char* id, const char* token, const char* device) {
+BanState AccountClient::checkBanned(const char* id, const char* token, const char* device,
+                                   const char* petName) {
     if (!id || !id[0]) return BanState::Unknown;
     CURL* c = curl_easy_init();
     if (!c) return BanState::Unknown;
 
     std::string body;
     std::string url = std::string(kBase) + "/api/petstatus?id=" + urlEncode(id);
-    if (token && token[0])  { url += "&token=";  url += urlEncode(token); }
-    if (device && device[0]){ url += "&device="; url += urlEncode(device); }
+    if (token && token[0])    { url += "&token=";  url += urlEncode(token); }
+    if (device && device[0])  { url += "&device="; url += urlEncode(device); }
+    if (petName && petName[0]){ url += "&name=";   url += urlEncode(petName); }
 
     curl_easy_setopt(c, CURLOPT_URL, url.c_str());
     curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT, 6L);  // keep boot snappy
@@ -139,7 +141,7 @@ bool AccountClient::link(const char* id, const char* token, const char* targetId
 
 namespace petpal {
 RegisterResult AccountClient::registerDevice(const char*) { return {}; }
-BanState       AccountClient::checkBanned(const char*, const char*, const char*) { return BanState::Unknown; }
+BanState       AccountClient::checkBanned(const char*, const char*, const char*, const char*) { return BanState::Unknown; }
 bool           AccountClient::link(const char*, const char*, const char*) { return false; }
 } // namespace petpal
 

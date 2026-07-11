@@ -117,9 +117,12 @@ bool Game::init() {
         // so offline/erroring never locks out a legit player - only an explicit
         // "banned" from the server blocks play.
         if (!state_.account.id.empty()) {
+            // Also report the pet name (if onboarded) so the admin panel can show
+            // it - the 3DS has no separate pet-sync. Server filters the name.
+            const char* petName = state_.meta.onboarded ? state_.pet.name() : nullptr;
             banned_ = AccountClient::checkBanned(state_.account.id.c_str(),
                                                  state_.account.token.c_str(),
-                                                 "3ds") == BanState::Yes;
+                                                 "3ds", petName) == BanState::Yes;
         }
         // Ask the server for the latest version once at boot (fails open).
         updateAvailable_ = fetchUpdateStatus();

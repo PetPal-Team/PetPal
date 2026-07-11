@@ -29,8 +29,12 @@ public:
     // POST /api/register  {device} -> {id, token}. device e.g. "3ds".
     static RegisterResult registerDevice(const char* device);
 
-    // GET /api/petstatus?id=&token=&device= -> banned? Unknown on any error.
-    static BanState checkBanned(const char* id, const char* token, const char* device);
+    // GET /api/petstatus?id=&token=&device=[&name=] -> banned? Unknown on any error.
+    // petName is optional (nullptr/"" to skip); when the token matches, the server
+    // stores it so the admin panel can show the 3DS pet's name (there's no
+    // separate 3DS pet-sync).
+    static BanState checkBanned(const char* id, const char* token, const char* device,
+                               const char* petName = nullptr);
 
     // POST /api/link {id, token, targetId}. True when the phone account accepted
     // the link (caller should then adopt targetId locally).
