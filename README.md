@@ -1,5 +1,4 @@
 ## Join the Discord: https://discord.gg/6hwsE4WNDj
-## As cloudflare costs increase please consider donating to help keep this project free. [GiveButter](https://givebutter.com/teampetpal)
 
 # 🐾 PetPal — a StreetPass-style Virtual Pet for the Nintendo 3DS
 
