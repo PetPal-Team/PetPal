@@ -145,14 +145,14 @@ PetPal/
 | [PROGRESS.md](PROGRESS.md) | Running dev log / build & deploy notes |
 
 ## 🚧 Status
-First public release (**v0.1.0**). The full core loop is implemented and verified
-on real hardware. Known rough edges / planned: a food-picker when feeding, an
-evolution cutscene, rendering the remaining accessories/styles, and a few more
-nav sounds. Contributions and bug reports welcome.
+Fourth public release (**v0.1.3-1**). The full core loop is implemented and verified
+on real hardware. Feeding, Growing, and Evolving is fully implemented.
+Lots of more stuff coming!!! 
+Contributions and bug reports welcome.
 
 ## 📄 License & credits
 Released under the [MIT License](LICENSE). Homebrew and non-commercial in spirit —
 **not affiliated with Nintendo**. "Nintendo 3DS" and "StreetPass" are trademarks
 of Nintendo. Thanks to the devkitPro, libctru, and 3DS homebrew communities, and
-to the folks behind [NetPass](https://gitlab.com/3ds-netpass/netpass) and the
+to the people behind [NetPass](https://gitlab.com/3ds-netpass/netpass) and the
 [CECD](https://github.com/NarcolepticK/CECDocs) documentation.
