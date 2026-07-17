@@ -158,6 +158,7 @@ PetPal/
 | [ROADMAP.md](docs/ROADMAP.md) | Implementation phases and future features |
 
 ## 🚧 Status
+<<<<<<< HEAD
 Current release: **v0.1.4** (`kAppVersion` in `include/core/Types.h`; save format
 **v4**). The full core loop, care/mood/streak system, internet passes, phone
 linking + pet continuity, minigame, and profile badges are implemented and the
@@ -165,10 +166,16 @@ model layer is covered by host tests. Known rough edges / planned: an in-app foo
 picker on the 3DS (feeding auto-picks today; the Android app has a picker), an
 evolution cutscene, and rendering the remaining accessories/styles. Contributions
 and bug reports welcome.
+=======
+Fourth public release (**v0.1.3-1**). The full core loop is implemented and verified
+on real hardware. Feeding, Growing, and Evolving is fully implemented.
+Lots of more stuff coming!!! 
+Contributions and bug reports welcome.
+>>>>>>> 737db1ab1ecc2134a29392ee2ee1d521fbfeae27
 
 ## 📄 License & credits
 Released under the [MIT License](LICENSE). Homebrew and non-commercial in spirit —
 **not affiliated with Nintendo**. "Nintendo 3DS" and "StreetPass" are trademarks
 of Nintendo. Thanks to the devkitPro, libctru, and 3DS homebrew communities, and
-to the folks behind [NetPass](https://gitlab.com/3ds-netpass/netpass) and the
+to the people behind [NetPass](https://gitlab.com/3ds-netpass/netpass) and the
 [CECD](https://github.com/NarcolepticK/CECDocs) documentation.
