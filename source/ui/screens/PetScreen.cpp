@@ -17,13 +17,14 @@
 namespace petpal {
 
 namespace {
-const char* kLabels[PetScreen::ActionCount] = { "Feed", "Play", "Pet", "Talk", "Evolve" };
+const char* kLabels[PetScreen::ActionCount] = { "Feed", "Play", "Rest", "Pet", "Talk", "Evolve" };
 const Icon  kIcons[PetScreen::ActionCount]  = {
-    Icon::Apple, Icon::Bone, Icon::Happy, Icon::Friendship, Icon::Star
+    Icon::Apple, Icon::Bone, Icon::Energy, Icon::Happy, Icon::Friendship, Icon::Star
 };
 const uint32_t kColors[PetScreen::ActionCount] = {
     0xF2994AFF, // Feed   - orange
     0x6FCF6FFF, // Play   - mint
+    0x9B8CFFFF, // Rest   - indigo
     0xFF7FB5FF, // Pet    - coral
     0x5BC0DEFF, // Talk   - sky
     0x9B59B6FF, // Evolve - purple
@@ -66,6 +67,7 @@ void PetScreen::doAction(int index) {
     switch (index) {
         case ActFeed: fb = game_->feedPet(pickFood(game_)); break;
         case ActPlay: fb = game_->playWithPet(); break;
+        case ActRest: fb = game_->restPet();     break;
         case ActPet:  fb = game_->petThePet();  break;
         case ActTalk: fb = game_->talkToPet();  break;
         case ActEvolve:
@@ -88,6 +90,14 @@ void PetScreen::update(float dt, const Input& in) {
         if (press_[i] > 0.0f) { press_[i] -= dt * 4.0f; if (press_[i] < 0) press_[i] = 0; }
 
     if (in.pressed(KEY_B)) { ui_->goBack(); return; }
+
+    // Y launches the Star Tap minigame (a blocking mode); reward on return.
+    if (in.pressed(KEY_Y)) {
+        const int sc = ui_->runMinigame();
+        ActionFeedback fb = game_->rewardMinigame(sc);
+        showToast(fb.message);
+        return;
+    }
 
     const int prevFocus = focus_;
     if (in.pressed(KEY_RIGHT) && (focus_ % 3) < 2 && focus_ + 1 < ActionCount) ++focus_;
@@ -123,29 +133,40 @@ void PetScreen::drawTop() {
     ui_->drawLocationBg(Location::Town);
     ui_->drawPet(pet, 120.0f, 130.0f);
 
-    // Title.
+    // Title + current mood (derived from needs).
     char line[80];
     std::snprintf(line, sizeof(line), "%s the %s", pet.name(), speciesName(pet.species()));
-    draw::textCentered(font, buf, line, 130, 20, 0.56f, toC2D(kText));
+    draw::textCentered(font, buf, line, 130, 18, 0.56f, toC2D(kText));
     std::snprintf(line, sizeof(line), "%s  -  Lv.%u", evolutionStageName(pet.stage()), pet.level());
-    draw::textCentered(font, buf, line, 130, 38, 0.42f, toC2D(kTextMuted));
+    draw::textCentered(font, buf, line, 130, 36, 0.42f, toC2D(kTextMuted));
+    std::snprintf(line, sizeof(line), "Feeling %s", moodName(pet.mood()));
+    draw::textCentered(font, buf, line, 130, 52, 0.40f, toC2D(kText));
 
-    // Stat card on the right with icons.
+    // Server-assigned profile badges, shown just under the name/mood.
+    const std::vector<std::string>& badges = game_->badges();
+    if (!badges.empty()) {
+        std::string bl;
+        for (size_t i = 0; i < badges.size() && i < 3; ++i) { if (i) bl += "  "; bl += badges[i]; }
+        draw::textCentered(font, buf, bl.c_str(), 130, 64, 0.34f, toC2D(kSecondary));
+    }
+
+    // Stat card on the right with icons: happiness / energy / hunger / xp.
     const float px = 252, pw = 140;
-    draw::card(px, 56, pw, 158, 14, toC2D(kBgPanel), toC2D(kButtonShadow));
+    draw::card(px, 48, pw, 184, 14, toC2D(kBgPanel), toC2D(kButtonShadow));
     auto stat = [&](Icon ic, uint32_t col, float t, float y) {
         ui_->drawIcon(ic, px + 18, y + 8, 18, toC2D(col));
         draw::bar(px + 32, y + 2, pw - 44, 12, t, toC2D(kBarBack), toC2D(col));
     };
-    stat(Icon::Happy,      kBarHappy,  pet.happiness() / 100.0f, 70);
-    stat(Icon::Energy,     kBarEnergy, pet.energy()    / 100.0f, 100);
-    stat(Icon::Star,       kBarXp,     pet.levelProgress(),      130);
-    ui_->drawIcon(Icon::Friends, px + 18, 166, 18, toC2D(kSecondary));
+    stat(Icon::Happy,  kBarHappy,  pet.happiness() / 100.0f, 58);
+    stat(Icon::Energy, kBarEnergy, pet.energy()    / 100.0f, 84);
+    stat(Icon::Apple,  kBarHunger, pet.hunger()    / 100.0f, 110);
+    stat(Icon::Star,   kBarXp,     pet.levelProgress(),      136);
+    ui_->drawIcon(Icon::Friends, px + 18, 170, 18, toC2D(kSecondary));
     std::snprintf(line, sizeof(line), "%lu met", (unsigned long)pet.streetpassEncounters());
-    draw::textLeft(font, buf, line, px + 32, 160, 0.40f, toC2D(kText));
-    ui_->drawIcon(Icon::Friendship, px + 18, 190, 18, toC2D(kPrimary));
+    draw::textLeft(font, buf, line, px + 32, 164, 0.40f, toC2D(kText));
+    ui_->drawIcon(Icon::Friendship, px + 18, 196, 18, toC2D(kPrimary));
     std::snprintf(line, sizeof(line), "%lu", (unsigned long)pet.friendship());
-    draw::textLeft(font, buf, line, px + 32, 184, 0.40f, toC2D(kText));
+    draw::textLeft(font, buf, line, px + 32, 190, 0.40f, toC2D(kText));
 }
 
 void PetScreen::drawBottom() {
@@ -155,6 +176,13 @@ void PetScreen::drawBottom() {
     const bool canEvolve = game_->canEvolveNow();
 
     draw::textLeft(font, buf, "Care for your pet", 10, 8, 0.5f, toC2D(kText));
+    {
+        // Care-streak counter (grows on the first care action of each new day).
+        char s[40];
+        const unsigned long st = (unsigned long)game_->streak().current;
+        std::snprintf(s, sizeof(s), "Streak: %lu day%s", st, st == 1 ? "" : "s");
+        draw::textLeft(font, buf, s, kBottomWidth - 128, 10, 0.40f, toC2D(kTextMuted));
+    }
 
     for (int i = 0; i < ActionCount; ++i) {
         float x, y, w, h; tileRect(i, x, y, w, h);
@@ -189,7 +217,8 @@ void PetScreen::drawBottom() {
         draw::textCentered(font, buf, toast_.c_str(), kBottomWidth * 0.5f, 213, 0.44f,
                            C2D_Color32(255,255,255,(u8)(255*a)));
     } else {
-        ui_->drawHint(Btn::B, "Back", 10, 222);
+        const float bx = ui_->drawHint(Btn::B, "Back", 10, 222);
+        ui_->drawHint(Btn::Y, "Arcade", bx + 14, 222);
     }
 }
 

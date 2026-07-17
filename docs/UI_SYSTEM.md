@@ -10,7 +10,7 @@ citro3d underneath) and is the only device-bound part of the codebase.
 |------|------|------|
 | `UIManager` | `ui/UIManager.*` | Owns render targets, font, text buffer, sprite sheet, the screen stack, and the animation engine. Drives one frame. |
 | `Screen` | `ui/Screen.h` | Abstract base: `update`, `drawTop`, `drawBottom`, `onEnter/onExit`. |
-| 9 screens | `ui/screens/*` | Onboarding, MainMenu, Pet, Friends, Adventures, Journal, Customization, Achievements, Settings. |
+| 10 screens | `ui/screens/*` | Onboarding, MainMenu, Pet, Friends, Adventures, Journal, Customization, Achievements, Shop, Settings. |
 | `Widgets` | `ui/Widgets.*` | `Button` (rounded + press-bounce) and `draw::` helpers (rounded rect, card+shadow, value bar, centered/left text). |
 | `AnimationManager` | `ui/AnimationManager.*` | Easing functions + named `Tween`s + a global clock for idle motion. |
 | `PetRenderer` | `ui/PetRenderer.*` | Draws the pet (procedural today, sprite-ready). |
@@ -32,8 +32,16 @@ citro3d underneath) and is the only device-bound part of the codebase.
 The root is **Onboarding** on first run, otherwise **MainMenu**. `START` on the
 hub or onboarding quits.
 
-All nine screens are built once at startup and kept alive, so switching is
+All ten screens are built once at startup and kept alive, so switching is
 instant and screens retain scroll/cursor state.
+
+**Full-screen modals** live outside the stack: `UIManager::showModalMessage`
+(boot "please update"), `showBannedScreen` (the red 401 for a banned pet), and
+`runMinigame` (the Star Tap game, launched with **Y** on the Pet screen) each run
+their own blocking `aptMainLoop` and return control (the minigame returns a score
+`Game::rewardMinigame` turns into coins/happiness). The Pet screen's top also
+draws the derived **mood**, the **hunger** bar, the **care streak**, and any
+server **profile badges** next to the pet's name.
 
 ## Frame rendering
 
@@ -93,12 +101,13 @@ To switch to real art: author a citro2d atlas (`gfx/sprites.t3s` →
 calls in `PetRenderer::draw()` with `C2D_DrawSprite` using a sprite index keyed
 by `{species, stage, frame}`. Nothing else changes.
 
-## Celebrations & audio (hook)
+## Celebrations & audio
 
 `UIManager::celebrate(kind)` is the single entry point for level-up / evolution
-/ new-friend / achievement / reward feedback. It currently kicks a tween;
-particle bursts and `ndsp` jingle playback wire in here once SFX/music assets
-land (see `assets/README.md`). Settings expose music/SFX volume for that path.
+/ new-friend / achievement / reward feedback. Audio is wired: taps, feeding, and
+celebrations play `ndsp` SFX over the streamed looping BGM, honoring the Settings
+music/SFX volume sliders (see `assets/README.md`). Still pending: particle bursts
+on `celebrate()`.
 
 ## Adding a screen
 

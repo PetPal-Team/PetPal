@@ -37,6 +37,7 @@ constexpr uint32_t kButtonPressed = 0xFFE3EFFF;
 constexpr uint32_t kBarBack    = 0x00000022;
 constexpr uint32_t kBarHappy   = 0xFF8FC7FF; // pink
 constexpr uint32_t kBarEnergy  = 0xF2C14EFF; // yellow
+constexpr uint32_t kBarHunger  = 0xF2994AFF; // orange (fullness)
 constexpr uint32_t kBarXp      = 0x5BC0DEFF; // blue
 
 // Metrics.

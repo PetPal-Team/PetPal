@@ -41,6 +41,43 @@ struct Account {
     std::string id;       // "PP-XXXX-XXXX" (empty until first online boot)
     std::string token;    // per-device credential (empty after linking)
     bool        linked = false; // adopted a phone account's id
+    // Cross-device continuity (v4): the server pet `updatedAt` (ms) this console
+    // last reconciled with, so a linked device knows if the server copy is newer.
+    uint64_t    petSyncAt = 0;
+};
+
+// What a streak check-in produced, so the UI can celebrate.
+struct StreakResult {
+    bool     advanced    = false; // the chain grew today (first care of a new day)
+    bool     milestone   = false; // landed on a kStreakMilestoneDays multiple
+    uint32_t current     = 0;     // streak length after this check-in
+    uint32_t rewardCoins = 0;     // bonus paid on a milestone
+};
+
+// Care streak (v4): consecutive real days on which the pet was tended at least
+// once. Any care action calls checkIn(now); it is idempotent within a day.
+struct Streak {
+    uint32_t  current     = 0; // days in the current chain
+    uint32_t  best        = 0; // longest chain ever reached
+    Timestamp lastCareDay = 0; // epoch-day of the last tend (0 = never tended)
+
+    StreakResult checkIn(Timestamp now) {
+        StreakResult res;
+        const Timestamp today = now / 86400ULL; // UTC day index
+        res.current = current;
+        if (lastCareDay == today) return res;            // already counted today
+        if (lastCareDay != 0 && today == lastCareDay + 1) current += 1; // continued
+        else current = 1;                                // started fresh / chain broke
+        lastCareDay = today;
+        if (current > best) best = current;
+        res.advanced = true;
+        res.current  = current;
+        if (current % kStreakMilestoneDays == 0) {
+            res.milestone   = true;
+            res.rewardCoins = kStreakMilestoneCoins;
+        }
+        return res;
+    }
 };
 
 // World progression (locations the pet has unlocked). Town is free.
@@ -69,6 +106,7 @@ struct PersistentState {
     Settings      settings;
     SaveMeta      meta;
     Account       account;   // v3: server identity / 3DS-link
+    Streak        streak;    // v4: daily care streak
 };
 
 } // namespace petpal

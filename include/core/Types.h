@@ -18,9 +18,9 @@ namespace petpal {
 // -----------------------------------------------------------------------------
 //  Versioning
 // -----------------------------------------------------------------------------
-constexpr uint32_t kAppVersion      = 0x00000103; // 0.1.3  (major.minor.patch, one byte each)
+constexpr uint32_t kAppVersion      = 0x00000104; // 0.1.4  (major.minor.patch, one byte each)
 constexpr uint32_t kSaveMagic       = 0x4C415050; // 'PPAL' little-endian "PPAL"
-constexpr uint16_t kSaveVersion     = 3; // v3: server account (id/token/linked) fields
+constexpr uint16_t kSaveVersion     = 4; // v4: hunger need + decay clock + care streak
 constexpr uint32_t kNetPassMagic    = 0x50455450; // 'PTEP' -> "PTEP" PetPal tag
 constexpr uint16_t kNetPassVersion  = 1;
 
@@ -152,6 +152,21 @@ constexpr std::array<uint32_t, kFriendshipLevelCount> kFriendshipThresholds = {
 };
 
 // -----------------------------------------------------------------------------
+//  Mood
+//  Derived at runtime from the pet's needs (never serialized), so a save can
+//  never disagree with how the pet looks. Order is display order, not stored.
+// -----------------------------------------------------------------------------
+enum class Mood : uint8_t {
+    Happy = 0,   // all needs healthy
+    Content,     // doing fine
+    Hungry,      // fullness is the pressing need
+    Tired,       // energy is the pressing need
+    Sad,         // happiness is the pressing need / generally neglected
+    Count
+};
+constexpr int kMoodCount = static_cast<int>(Mood::Count);
+
+// -----------------------------------------------------------------------------
 //  Locations (unlockable)
 // -----------------------------------------------------------------------------
 enum class Location : uint8_t {
@@ -245,9 +260,23 @@ constexpr int kAchievementCount = static_cast<int>(AchievementId::Count);
 // -----------------------------------------------------------------------------
 //  Core stat caps / tuning
 // -----------------------------------------------------------------------------
-constexpr uint8_t  kStatMax        = 100;   // happiness & energy are 0..100
+constexpr uint8_t  kStatMax        = 100;   // happiness, energy & hunger are 0..100
 constexpr uint16_t kMaxLevel       = 99;
 constexpr uint32_t kXpPerLevelBase = 100;   // see Pet::xpForLevel()
+
+// A need at/under this fraction of full is what drives the pet's Mood.
+constexpr uint8_t  kNeedLowThreshold = 30;  // <=30/100 => that need is "pressing"
+
+// Needs decay while the app is closed (and slowly while open). Per real hour, so
+// a fully-tended pet drifts toward hungry/tired over ~a day of neglect.
+constexpr uint8_t  kHungerDecayPerHour    = 5;  // fullness: ~20h to empty
+constexpr uint8_t  kEnergyDecayPerHour    = 4;  // ~25h to empty
+constexpr uint8_t  kHappinessDecayPerHour = 3;  // ~33h to empty
+
+// Care streak: a chain of days on which the player tended the pet at least once.
+// Hitting a multiple of kStreakMilestoneDays pays a coin bonus.
+constexpr uint32_t kStreakMilestoneDays  = 7;
+constexpr uint32_t kStreakMilestoneCoins = 50;
 
 // -----------------------------------------------------------------------------
 //  Fixed-size string limits (kept small for save & packet predictability)

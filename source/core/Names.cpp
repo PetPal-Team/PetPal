@@ -91,6 +91,11 @@ static const char* kFriendshipNames[kFriendshipLevelCount] = {
 };
 const char* friendshipLevelName(FriendshipLevel f) { return kFriendshipNames[static_cast<int>(f)]; }
 
+static const char* kMoodNames[kMoodCount] = {
+    "Happy", "Content", "Hungry", "Tired", "Sad"
+};
+const char* moodName(Mood m) { return kMoodNames[static_cast<int>(m)]; }
+
 static const char* kLocationNames[kLocationCount] = {
     "Town", "Forest", "Beach", "Arcade", "Castle",
     "Space Station", "Mountain", "Garden", "Haunted Manor", "Crystal Cave"

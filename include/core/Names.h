@@ -21,6 +21,7 @@ const char* styleName(Style s);
 
 const char* evolutionStageName(EvolutionStage e);
 const char* friendshipLevelName(FriendshipLevel f);
+const char* moodName(Mood m);
 const char* locationName(Location l);
 const char* adventureDurationName(AdventureDuration d);
 

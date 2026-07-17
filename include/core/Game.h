@@ -60,6 +60,8 @@ public:
     // ----- Server identity / ban ------------------------------------------
     const std::string& accountId() const { return state_.account.id; }
     bool               banned() const { return banned_; }
+    // Profile badge labels from the server (fetched at boot; empty if offline).
+    const std::vector<std::string>& badges() const { return badges_; }
     // Link this console to a phone account by its PP-XXXX-XXXX id. On success the
     // console adopts targetId locally + saves. Returns false on any failure.
     bool linkToPhone(const char* targetId);
@@ -68,10 +70,19 @@ public:
     void createPet(Species species, const char* name);
 
     // ----- Daily activities (each may level up / unlock evolution) ----------
+    // Every care verb also registers a daily care-streak check-in.
     ActionFeedback feedPet(ItemId food);
     ActionFeedback playWithPet();
+    ActionFeedback restPet();
     ActionFeedback petThePet();
     ActionFeedback talkToPet();
+
+    // ----- Care streak ------------------------------------------------------
+    const Streak& streak() const { return state_.streak; }
+
+    // ----- Minigame ---------------------------------------------------------
+    // Reward a finished Star Tap round: coins + happiness + XP + a streak tick.
+    ActionFeedback rewardMinigame(int score);
 
     // ----- Adventures -------------------------------------------------------
     bool            startAdventure(Location loc, AdventureDuration dur);
@@ -112,6 +123,14 @@ public:
     void requestQuit()     { quit_ = true; }
 
 private:
+    // Register a daily care-streak check-in; pays a coin bonus on milestones.
+    void applyCareStreak(ActionFeedback& fb);
+
+    // Cross-device continuity with a linked phone account (device-only work; the
+    // AccountClient host stubs make these no-ops off-device).
+    void syncPetWithServer(); // boot: adopt the newer side
+    void pushPetToServer();   // upload our current pet snapshot
+
     // Roll achievements against current progress; apply cosmetic unlocks +
     // journal + celebration for any newly earned.
     void runAchievementChecks();
@@ -141,6 +160,7 @@ private:
     bool      quit_        = false;
     bool      updateAvailable_ = false; // server reported a newer version at boot
     bool      banned_      = false;     // server reported this pet is banned at boot
+    std::vector<std::string> badges_;   // profile badge labels from the boot check
 };
 
 } // namespace petpal

@@ -58,8 +58,12 @@ public:
     uint32_t experience()    const { return experience_; }
     uint8_t  happiness()     const { return happiness_; }
     uint8_t  energy()        const { return energy_; }
+    uint8_t  hunger()        const { return hunger_; } // fullness: 100=full, 0=starving
     uint32_t friendship()    const { return friendship_; }
     uint16_t adventureRank() const { return adventureRank_; }
+
+    // Current mood, derived from the needs above (never serialized).
+    Mood mood() const;
 
     // XP needed to advance *from* a given level to the next.
     static uint32_t xpForLevel(uint16_t level);
@@ -84,8 +88,9 @@ public:
 
     // --- Daily activities ---------------------------------------------------
     // Each returns what changed so the UI can react. Stats are clamped 0..100.
-    ActionResult feed(ItemId food);   // restores energy; favorite gives bonus
+    ActionResult feed(ItemId food);   // restores fullness (+a little energy); favorite gives bonus
     ActionResult play();              // +happiness, -energy, small XP
+    ActionResult rest();              // +energy (a nap)
     ActionResult petPet();            // +happiness
     ActionResult talk();              // +happiness, +friendship trickle
 
@@ -104,10 +109,21 @@ public:
     // --- Adventure hooks ----------------------------------------------------
     void onAdventureCompleted() { ++adventuresCompleted_; ++adventureRank_; }
     void addFriendship(uint32_t amount);
+    void addHappiness(int delta); // clamp to 0..100 (used by minigame rewards)
 
-    // --- Time-based decay (called once per real day on load) ----------------
-    // Pets get a little hungry/sleepy over time. days==0 is a no-op.
-    void applyDecay(uint32_t days);
+    // --- Real-time needs decay ---------------------------------------------
+    // Advance the pet's needs to wall-clock `now`, draining fullness/energy/
+    // happiness for whole hours elapsed since the last catch-up. Safe to call
+    // every frame (a no-op until an hour passes) and on load. lastDecayAt_ is
+    // the internal clock; a brand-new pet anchors it on the first call.
+    void catchUpTo(Timestamp now);
+
+    // --- Cross-device continuity -------------------------------------------
+    // Overwrite identity + basic stats from a linked account's server snapshot.
+    // Appearance (colors/accessories) and progression counters stay local.
+    // A negative int or empty name means "leave this field alone".
+    void applyServerSnapshot(const char* name, int species, int stage, int level,
+                             int happiness, int energy, int hunger);
 
 private:
     void recomputeStage(); // clamps stage_ upward to whatever is earned
@@ -131,8 +147,12 @@ private:
     uint32_t experience_;     // XP accumulated *within* the current level
     uint8_t  happiness_;
     uint8_t  energy_;
+    uint8_t  hunger_;         // fullness/satiety: 100=full, 0=starving (v4)
     uint32_t friendship_;
     uint16_t adventureRank_;
+
+    // Needs clock (v4): wall-clock seconds at which decay was last applied.
+    Timestamp lastDecayAt_ = 0;
 
     // Progression
     uint32_t streetpassEncounters_;

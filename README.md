@@ -34,10 +34,16 @@ portable exports under `backups/`). It's created automatically on first run.
 - **Onboarding** picks and names your pet. From then on the **hub** (bottom
   screen) is a grid of tiles: Pet, Friends, Adventure, Journal, Style, **Shop**,
   Awards, Settings. D-pad + A to navigate, B to go back, touch works too.
-- **Pet** screen: Feed / Play / Pet / Talk raise stats; **Evolve** when your pet
-  has met enough friends. Buy food and evolution shards in the **Shop** with coins
-  earned from adventures and rewards.
+- **Pet** screen: **Feed / Play / Rest / Pet / Talk** tend your pet; **Evolve**
+  when it's met enough friends. The top screen shows its **mood** (derived from
+  happiness / energy / hunger, which drain in real time) plus your **care streak**
+  and any **profile badges**. Press **Y** for the **Star Tap** arcade minigame
+  (coins + a happiness boost). Buy food and evolution shards in the **Shop**.
+- **Care streak**: caring for your pet at least once a day builds a streak; every
+  7 days pays a coin bonus.
 - **Friends**: everyone you've passed. Press **X** to check for new passes now.
+- **Link to phone** (Settings): enter your **PetPal Android** account's ID to link
+  the two into one identity — the pet syncs between them (see the companion app).
 - **Codes**: Settings → **Enter code** redeems codes from
   [teampetpal.com/codes](https://teampetpal.com/codes) for one-off rewards.
 
@@ -71,10 +77,18 @@ secrets live on the device.
   drawn from shapes with **two customizable colors** and Idle / Happy / Sad
   animations — no sprite art needed.
 - **5-stage evolution** driven by how many friends you've met.
-- **Core loop**: feed, play, pet, talk, dress-up, adventures with per-location
-  loot and a generated story line.
+- **Care loop with moods** — happiness, energy, and **hunger** drain in real time
+  (even while closed); **Feed / Play / Rest / Pet / Talk** tend them, and the pet's
+  **mood** (Happy / Content / Hungry / Tired / Sad) is derived from those needs.
+- **Daily care streak** — a chain of days you've tended your pet, with a coin
+  bonus every 7 days.
+- **Star Tap minigame** (press **Y** on the Pet screen) for coins + happiness.
 - **Coin shop** to buy foods, rare treats, and evolution shards.
 - **Internet passes** — meet other players worldwide via PetPal's relay.
+- **Phone linking + cross-device continuity** — link to the **PetPal Android**
+  app so the 3DS and phone share one bannable identity and the same pet.
+- **Profile badges** — server-assigned tags (Owner, Developer, Helper, …, plus an
+  automatic **1-Year-Club**) shown next to your pet's name.
 - **Redeemable codes** with server-side rewards (items / accessories / a 24-hour
   BonziBuddy transform).
 - **Audio** — streamed looping BGM plus WAV and synthesized chip-blip SFX, with
@@ -142,13 +156,15 @@ PetPal/
 | [NETPASS_INTEGRATION.md](docs/NETPASS_INTEGRATION.md) | Packet format, the CECD dead end, the internet relay |
 | [UI_SYSTEM.md](docs/UI_SYSTEM.md) | Screen stack, widgets, animation engine, rendering |
 | [ROADMAP.md](docs/ROADMAP.md) | Implementation phases and future features |
-| [PROGRESS.md](PROGRESS.md) | Running dev log / build & deploy notes |
 
 ## 🚧 Status
-First public release (**v0.1.0**). The full core loop is implemented and verified
-on real hardware. Known rough edges / planned: a food-picker when feeding, an
-evolution cutscene, rendering the remaining accessories/styles, and a few more
-nav sounds. Contributions and bug reports welcome.
+Current release: **v0.1.4** (`kAppVersion` in `include/core/Types.h`; save format
+**v4**). The full core loop, care/mood/streak system, internet passes, phone
+linking + pet continuity, minigame, and profile badges are implemented and the
+model layer is covered by host tests. Known rough edges / planned: an in-app food
+picker on the 3DS (feeding auto-picks today; the Android app has a picker), an
+evolution cutscene, and rendering the remaining accessories/styles. Contributions
+and bug reports welcome.
 
 ## 📄 License & credits
 Released under the [MIT License](LICENSE). Homebrew and non-commercial in spirit —

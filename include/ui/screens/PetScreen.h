@@ -16,7 +16,7 @@ public:
     void drawTop() override;
     void drawBottom() override;
 
-    enum Action { ActFeed = 0, ActPlay, ActPet, ActTalk, ActEvolve, ActionCount };
+    enum Action { ActFeed = 0, ActPlay, ActRest, ActPet, ActTalk, ActEvolve, ActionCount };
 
 private:
     void doAction(int index);

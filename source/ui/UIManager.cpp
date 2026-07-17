@@ -347,6 +347,86 @@ void UIManager::showBannedScreen(const char* id) {
 #endif
 }
 
+int UIManager::runMinigame() {
+#ifdef __3DS__
+    if (!started_) return 0;
+    using namespace theme;
+    const u32 gold = C2D_Color32(242, 193, 78, 255);
+
+    // 3x3 touch grid on the bottom screen; tap the gold target as it hops.
+    const int COLS = 3, ROWS = 3, N = COLS * ROWS;
+    const float cw = 80.0f, ch = 56.0f, gap = 8.0f;
+    const float gridW = COLS * cw + (COLS - 1) * gap;
+    const float sx = (kBottomWidth - gridW) * 0.5f, sy = 44.0f;
+    (void)ROWS;
+    auto cellPos = [&](int i, float& x, float& y) {
+        x = sx + (i % COLS) * (cw + gap);
+        y = sy + (i / COLS) * (ch + gap);
+    };
+
+    u32 seed = static_cast<u32>(osGetTime());
+    auto nextRand = [&]() { seed = seed * 1103515245u + 12345u; return (seed >> 16) & 0x7fff; };
+
+    int score = 0;
+    int active = static_cast<int>(nextRand() % N);
+    const u64 start = osGetTime();
+    const u64 durationMs = 15000;
+
+    while (aptMainLoop()) {
+        hidScanInput();
+        const u32 kDown = hidKeysDown();
+        if (kDown & KEY_START) break;
+
+        const u64 elapsed = osGetTime() - start;
+        if (elapsed >= durationMs) break;
+        const int secsLeft = static_cast<int>((durationMs - elapsed + 999) / 1000);
+
+        if (kDown & KEY_TOUCH) {
+            touchPosition tp; hidTouchRead(&tp);
+            float ax, ay; cellPos(active, ax, ay);
+            if (tp.px >= ax && tp.px <= ax + cw && tp.py >= ay && tp.py <= ay + ch) {
+                ++score;
+                active = (active + 1 + static_cast<int>(nextRand() % (N - 1))) % N;
+            }
+        }
+
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+        // Top: title + score + countdown.
+        C2D_TargetClear(top_, toC2D(kBgTop));
+        C2D_SceneBegin(top_);
+        C2D_ViewReset();
+        drawBackground();
+        const float cx = kTopWidth * 0.5f;
+        char line[48];
+        draw::textCentered(font_, dynBuf_, "Star Tap", cx, 44, 0.9f, toC2D(kText));
+        std::snprintf(line, sizeof(line), "Score: %d", score);
+        draw::textCentered(font_, dynBuf_, line, cx, 104, 0.7f, toC2D(kText));
+        std::snprintf(line, sizeof(line), "Time: %ds", secsLeft);
+        draw::textCentered(font_, dynBuf_, line, cx, 142, 0.55f, toC2D(kTextMuted));
+        draw::textCentered(font_, dynBuf_, "Tap the gold dot below!", cx, 182, 0.48f, toC2D(kTextMuted));
+
+        // Bottom: the grid.
+        C2D_TargetClear(bottom_, toC2D(kBgBottom));
+        C2D_SceneBegin(bottom_);
+        C2D_ViewReset();
+        for (int i = 0; i < N; ++i) {
+            float x, y; cellPos(i, x, y);
+            draw::card(x, y, cw, ch, 12.0f, toC2D(kBgPanel), toC2D(kButtonShadow));
+            if (i == active)
+                C2D_DrawCircleSolid(x + cw * 0.5f, y + ch * 0.5f, 0.0f, ch * 0.36f, gold);
+        }
+        draw::textCentered(font_, dynBuf_, "START: quit", kBottomWidth * 0.5f, 232, 0.38f, toC2D(kTextMuted));
+
+        C3D_FrameEnd(0);
+        C2D_TextBufClear(dynBuf_);
+    }
+    return score;
+#else
+    return 0;
+#endif
+}
+
 #ifdef __3DS__
 void UIManager::drawIcon(Icon id, float cx, float cy, float size, u32 tint) {
     if (!sprites_) return;

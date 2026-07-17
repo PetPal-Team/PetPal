@@ -83,9 +83,8 @@ bool Game::init() {
             PP_WARN("save load failed (%d); starting fresh", (int)e);
             state_ = PersistentState{};
         } else {
-            // Catch the pet up on time passed while the app was closed.
-            const uint32_t days = daysBetween(state_.meta.lastSavedAt, nowSeconds());
-            state_.pet.applyDecay(days);
+            // Catch the pet's needs up on the real time passed while closed.
+            state_.pet.catchUpTo(nowSeconds());
         }
     }
     if (state_.meta.createdAt == 0) state_.meta.createdAt = nowSeconds();
@@ -122,8 +121,12 @@ bool Game::init() {
             const char* petName = state_.meta.onboarded ? state_.pet.name() : nullptr;
             banned_ = AccountClient::checkBanned(state_.account.id.c_str(),
                                                  state_.account.token.c_str(),
-                                                 "3ds", petName) == BanState::Yes;
+                                                 "3ds", petName, &badges_) == BanState::Yes;
         }
+        // Cross-device continuity: if linked to a phone account, reconcile the
+        // shared pet (adopt the newer side). Skipped for banned consoles.
+        if (!banned_ && state_.account.linked && !state_.account.id.empty())
+            syncPetWithServer();
         // Ask the server for the latest version once at boot (fails open).
         updateAvailable_ = fetchUpdateStatus();
     }
@@ -171,6 +174,9 @@ void Game::run() {
 
         // Track playtime.
         state_.meta.playSeconds += static_cast<uint64_t>(dt);
+
+        // Drain needs in real time too (a no-op until a whole hour passes).
+        state_.pet.catchUpTo(nowSeconds());
 
         if (!ui_.tick(dt)) quit_ = true;
         autosaveTick(dt);
@@ -284,11 +290,52 @@ bool Game::linkToPhone(const char* targetId) {
                                         state_.account.token.c_str(), targetId);
     if (ok) {
         state_.account.id = targetId;   // adopt the shared phone id
-        state_.account.token.clear();   // the shared account's token lives on the phone
+        // Keep our device token: /api/link added it to the shared account's token
+        // set, so this console can still read/write the pet for cross-device sync.
         state_.account.linked = true;
+        state_.account.petSyncAt = 0;   // force a pull of the phone's pet next boot
         requestSave();
     }
     return ok;
+}
+
+// Reconcile the shared pet with a linked phone account: adopt the server copy if
+// it was written more recently than our last sync, otherwise push ours up.
+// Uses AccountClient (device-only; host stubs make this a no-op off-device).
+void Game::syncPetWithServer() {
+    ServerPet sp;
+    if (!AccountClient::fetchPet(state_.account.id.c_str(),
+                                 state_.account.token.c_str(), sp))
+        return; // offline / error: leave local state untouched
+    if (sp.updatedAt != 0 && sp.updatedAt > state_.account.petSyncAt) {
+        // The phone wrote after our last sync -> adopt its identity + stats.
+        state_.pet.applyServerSnapshot(sp.name.c_str(), sp.species, sp.stage, sp.level,
+                                       sp.happiness, sp.energy, sp.hunger);
+        state_.account.petSyncAt = sp.updatedAt;
+        requestSave();
+    } else {
+        // We're the fresher side (or the server has no pet yet) -> push ours.
+        pushPetToServer();
+    }
+}
+
+void Game::pushPetToServer() {
+    if (!state_.account.linked || state_.account.id.empty()) return;
+    ServerPet sp;
+    sp.name       = state_.pet.name();
+    sp.species    = static_cast<int>(state_.pet.species());
+    sp.stage      = static_cast<int>(state_.pet.stage());
+    sp.level      = state_.pet.level();
+    sp.happiness  = state_.pet.happiness();
+    sp.energy     = state_.pet.energy();
+    sp.hunger     = state_.pet.hunger();
+    sp.coins      = static_cast<int>(state_.inventory.coins());
+    sp.encounters = static_cast<int>(state_.pet.streetpassEncounters());
+    if (AccountClient::savePet(state_.account.id.c_str(),
+                               state_.account.token.c_str(), sp)) {
+        state_.account.petSyncAt = static_cast<uint64_t>(nowSeconds()) * 1000ULL;
+        requestSave();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -303,6 +350,20 @@ static ActionFeedback toFeedback(const ActionResult& r, std::string msg) {
     return fb;
 }
 
+// Register a daily care check-in for any care action. On a streak milestone it
+// pays a coin bonus and lets the toast announce it (overriding the flavor line).
+void Game::applyCareStreak(ActionFeedback& fb) {
+    const StreakResult sr = state_.streak.checkIn(nowSeconds());
+    if (sr.milestone && sr.rewardCoins) {
+        inventory().addCoins(sr.rewardCoins);
+        ui_.celebrate(UIManager::Celebration::Reward);
+        char b[80];
+        std::snprintf(b, sizeof(b), "%lu-day care streak! +%lu coins",
+                      (unsigned long)sr.current, (unsigned long)sr.rewardCoins);
+        fb.message = b;
+    }
+}
+
 ActionFeedback Game::feedPet(ItemId food) {
     if (!inventory().has(food)) {
         ActionFeedback fb; fb.ok = false; fb.message = "You don't have that food.";
@@ -315,6 +376,7 @@ ActionFeedback Game::feedPet(ItemId food) {
     std::snprintf(buf, sizeof(buf), "Yum! %s loves the %s.", pet().name(), itemName(food));
     ActionFeedback fb = toFeedback(r, buf);
     if (fb.leveledUp) ui_.celebrate(UIManager::Celebration::LevelUp);
+    applyCareStreak(fb);
     return fb;
 }
 
@@ -322,17 +384,43 @@ ActionFeedback Game::playWithPet() {
     ActionResult r = pet().play();
     ActionFeedback fb = toFeedback(r, "What fun!");
     if (fb.leveledUp) ui_.celebrate(UIManager::Celebration::LevelUp);
+    applyCareStreak(fb);
+    return fb;
+}
+
+ActionFeedback Game::restPet() {
+    ActionResult r = pet().rest();
+    ActionFeedback fb = toFeedback(r, "Zzz... a restful nap.");
+    applyCareStreak(fb);
     return fb;
 }
 
 ActionFeedback Game::petThePet() {
     ActionResult r = pet().petPet();
-    return toFeedback(r, "So cozy!");
+    ActionFeedback fb = toFeedback(r, "So cozy!");
+    applyCareStreak(fb);
+    return fb;
 }
 
 ActionFeedback Game::talkToPet() {
     ActionResult r = pet().talk();
-    return toFeedback(r, "You had a nice chat.");
+    ActionFeedback fb = toFeedback(r, "You had a nice chat.");
+    applyCareStreak(fb);
+    return fb;
+}
+
+ActionFeedback Game::rewardMinigame(int score) {
+    if (score < 0) score = 0;
+    const uint32_t coinsWon = static_cast<uint32_t>(score) * 2u;
+    inventory().addCoins(coinsWon);
+    pet().addHappiness(score < 20 ? score : 20); // a fun boost, capped
+    ActionResult r = pet().addExperience(static_cast<uint32_t>(score));
+    char buf[80];
+    std::snprintf(buf, sizeof(buf), "Scored %d! +%lu coins", score, (unsigned long)coinsWon);
+    ActionFeedback fb = toFeedback(r, buf);
+    if (fb.leveledUp) ui_.celebrate(UIManager::Celebration::LevelUp);
+    applyCareStreak(fb); // playing counts as caring (advances the streak)
+    return fb;
 }
 
 // -----------------------------------------------------------------------------

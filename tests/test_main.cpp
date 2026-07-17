@@ -201,6 +201,77 @@ static void testAccountSave() {
     CHECK(d.account.id.empty() && d.account.token.empty() && d.account.linked == false);
 }
 
+static void testNeedsMoodStreak() {
+    std::printf("[needs / mood / streak]\n");
+    Pet p = Pet::createStarter(Species::Cat, "Mochi");
+    CHECK(p.hunger() == 80);
+    CHECK(p.mood() == Mood::Happy || p.mood() == Mood::Content);
+
+    // Feeding fills the belly.
+    const uint8_t before = p.hunger();
+    p.feed(ItemId::Apple);
+    CHECK(p.hunger() >= before);
+
+    // Real-time decay drains needs for whole hours elapsed.
+    Pet q = Pet::createStarter(Species::Fox, "Zed");
+    const Timestamp base = nowSeconds();
+    q.catchUpTo(base + 24 * 3600); // a day of neglect
+    CHECK(q.hunger() < 80);
+    CHECK(q.energy() < 80);
+    q.catchUpTo(base + 48 * 3600); // two days: definitely not Happy
+    CHECK(q.mood() != Mood::Happy);
+    // Sub-hour is a no-op (needs accrue, clock unchanged).
+    Pet f = Pet::createStarter(Species::Bunny, "Pip");
+    const uint8_t h0 = f.hunger();
+    f.catchUpTo(nowSeconds() + 59 * 60);
+    CHECK(f.hunger() == h0);
+
+    // Streak: starts at 1, continues next day, resets after a gap.
+    Streak s;
+    const Timestamp day0 = 100000ULL * 86400ULL; // a whole-day boundary
+    CHECK(s.checkIn(day0 + 3600).current == 1);
+    CHECK(!s.checkIn(day0 + 7200).advanced);          // same day, no change
+    CHECK(s.checkIn(day0 + 86400 + 10).current == 2); // next day continues
+    CHECK(s.checkIn(day0 + 3 * 86400 + 10).current == 1); // missed a day -> reset
+    CHECK(s.best == 2);
+
+    // Milestone at 7 consecutive days pays a bonus.
+    Streak ms; StreakResult last;
+    for (int d = 0; d < 7; ++d) last = ms.checkIn(day0 + (Timestamp)d * 86400 + 5);
+    CHECK(last.milestone && last.current == 7 && last.rewardCoins == kStreakMilestoneCoins);
+}
+
+static void testNeedsSaveV4() {
+    std::printf("[needs/streak save v4]\n");
+    PersistentState a;
+    a.pet = Pet::createStarter(Species::Slime, "Blob");
+    a.pet.feed(ItemId::Cake);
+    a.streak.checkIn(1700000000);
+    a.streak.checkIn(1700000000 + 86400); // 2-day streak
+    a.account.petSyncAt = 1712345678901ULL; // cross-device sync clock (ms)
+    const uint8_t hunger = a.pet.hunger();
+
+    std::vector<uint8_t> blob = SaveManager::serialize(a);
+    PersistentState b;
+    CHECK(SaveManager::deserialize(blob.data(), blob.size(), b) == SaveError::None);
+    CHECK(b.pet.hunger() == hunger);
+    CHECK(b.streak.current == a.streak.current);
+    CHECK(b.streak.best == a.streak.best);
+    CHECK(b.streak.lastCareDay == a.streak.lastCareDay);
+    CHECK(b.account.petSyncAt == a.account.petSyncAt);
+
+    // Cross-device snapshot adoption overwrites identity + stats only.
+    Pet z = Pet::createStarter(Species::Fox, "Zzz");
+    z.applyServerSnapshot("Mochi", (int)Species::Cat, (int)EvolutionStage::Adult, 15, 40, 55, 22);
+    CHECK(std::strcmp(z.name(), "Mochi") == 0);
+    CHECK(z.species() == Species::Cat);
+    CHECK(z.stage() == EvolutionStage::Adult);
+    CHECK(z.level() == 15 && z.happiness() == 40 && z.energy() == 55 && z.hunger() == 22);
+    // Negative fields are left untouched.
+    z.applyServerSnapshot("", -1, -1, -1, -1, -1, -1);
+    CHECK(z.hunger() == 22 && z.level() == 15);
+}
+
 static void testJsonLite() {
     std::printf("[jsonlite]\n");
     using namespace jsonlite;
@@ -216,6 +287,26 @@ static void testJsonLite() {
     const std::string st2 = "{\"status\":\"ok\",\"banned\":false}";
     CHECK(boolField(st2, "banned", true) == false);
     CHECK(boolField(st2, "absent", true) == true);   // default when absent
+
+    // Numeric extraction (cross-device pet snapshot: ordinals + ms updatedAt).
+    const std::string acc =
+        "{\"status\":\"ok\",\"hasPet\":true,\"pet\":{\"name\":\"Ziggy\",\"species\":3,\"level\":7},"
+        "\"updatedAt\":1712345678901}";
+    CHECK(intField(acc, "species", -1) == 3);
+    CHECK(intField(acc, "level", -1) == 7);
+    CHECK(longField(acc, "updatedAt", 0) == 1712345678901LL);
+    CHECK(intField(acc, "missing", -1) == -1);
+    // A null (or otherwise non-numeric) value falls back to the default.
+    const std::string nul = "{\"linkedAt\":null,\"level\":12}";
+    CHECK(intField(nul, "linkedAt", -5) == -5);
+    CHECK(intField(nul, "level", 0) == 12);
+
+    // String-array extraction (profile badges).
+    const std::string ba = "{\"status\":\"ok\",\"badges\":[\"Owner\",\"Developer\"],\"id\":\"PP-XX\"}";
+    const std::vector<std::string> bl = stringArray(ba, "badges");
+    CHECK(bl.size() == 2 && bl[0] == "Owner" && bl[1] == "Developer");
+    CHECK(stringArray(ba, "missing").empty());
+    CHECK(stringArray("{\"badges\":[]}", "badges").empty());
 }
 
 static void testNameFilter() {
@@ -244,6 +335,8 @@ int main() {
     testAdventure();
     testSaveRoundTrip();
     testAccountSave();
+    testNeedsMoodStreak();
+    testNeedsSaveV4();
     testJsonLite();
     testNameFilter();
 

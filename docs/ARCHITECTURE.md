@@ -22,7 +22,7 @@ flows through a frame and through a StreetPass meeting.
 ```
                 +-------------------------------------------------+
    device  -->  |  UI layer (citro2d)                             |
-                |  UIManager · Screen[9] · Widgets · PetRenderer  |
+                |  UIManager · Screen[10] · Widgets · PetRenderer |
                 |  AnimationManager                               |
                 +-------------------------+-----------------------+
                                           | high-level verbs
@@ -37,9 +37,10 @@ flows through a frame and through a StreetPass meeting.
         | Journal        |  |  + backup)  |  |   |                   |
         | Adventure      |  +-------------+  |   v                   |
         | Achievements   |                   | INetPassTransport     |
-        | World Settings |                   | Loopback | Cecd(3DS)  |
+        | World Settings |                   | Loopback | HttpPass   |
         | SaveMeta       |                   +-----------------------+
-        +----------------+
+        | Account Streak |         AccountClient -> teampetpal.com
+        +----------------+         (id/ban/version/link/pet sync)
                      ^
         util: Random · Time · Crc32 · ByteBuffer · Log
 ```
@@ -51,10 +52,17 @@ flows through a frame and through a StreetPass meeting.
 * **`PersistentState`** is the entire saveable game in one struct. Every
   subsystem object is a member by value, so "what gets saved" is one type.
 * **`UIManager`** owns the citro2d render targets, the system font, a per-frame
-  text buffer, the optional sprite sheet, the `AnimationManager`, and all nine
-  `Screen` instances (built once, kept alive, switched via a nav stack).
+  text buffer, the optional sprite sheet, the `AnimationManager`, and all ten
+  `Screen` instances (built once, kept alive, switched via a nav stack). It also
+  hosts the blocking full-screen modals (update prompt, banned 401, Star Tap
+  minigame) that take over rendering and return a result.
 * **`SaveManager`/`NetPassManager`** are `friend`s of the model classes so they
   can serialize private fields compactly without widening the public API.
+* **Online identity** is device-only and orchestrated by `Game`: `AccountClient`
+  (3ds-curl) mints the server pet ID, runs the boot ban + version checks, links to
+  a phone account, and syncs the pet for cross-device continuity. `PersistentState`
+  carries an `Account` (id/token/linked/petSyncAt, save v3/v4) and a `Streak`
+  (daily-care chain, save v4); the pet also gained a `hunger` need + decay clock.
 
 ## The frame loop
 
@@ -108,13 +116,13 @@ Outbound, `NetPassManager::buildPacket()` snapshots the pet into a packed
 | Module | Key types | Responsibility |
 |--------|-----------|----------------|
 | `core` | `Types.h`, `Names`, `Game` | Enums/tuning tables; display strings; orchestration & main loop |
-| `pets` | `Pet` | Identity, appearance, stats, XP/level, evolution, daily-activity effects |
+| `pets` | `Pet` | Identity, appearance, stats (happiness/energy/**hunger**), XP/level, evolution, daily-activity effects, real-time needs decay + derived **mood** |
 | `items` | `Inventory` | Item counts + coins, category queries |
 | `friends` | `Friend`, `FriendList` | Met-pet records, dedupe, friendship levels |
 | `journal` | `Journal` | Auto-written, capped, newest-first diary |
 | `adventure` | `Adventure` | Real-time trips, per-location loot tables, story text |
 | `achievements` | `Achievements` | Unlock bitmask, condition evaluation, cosmetic rewards |
-| `netpass` | `NetPassManager`, `PetPalPacket`, transports | Wire format, validation, CECD bridge |
+| `netpass` | `NetPassManager`, `PetPalPacket`, `HttpPassTransport`, `AccountClient`, `JsonLite` | Pass wire format + validation; internet relay; online identity (id/ban/version/link/pet sync) |
 | `save` | `SaveManager`, `SaveData` | Versioned/CRC'd serialization, atomic file I/O, backups |
 | `ui` | `UIManager`, `Screen`+9, `Widgets`, `AnimationManager`, `PetRenderer` | Rendering, input, navigation, animation |
 | `util` | `Random`, `Time`, `Crc32`, `ByteBuffer`, `Log` | Dependency-light helpers |

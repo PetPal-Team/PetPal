@@ -96,6 +96,10 @@ public:
     // Returns when the player presses START. No-op off device.
     void showBannedScreen(const char* id);
 
+    // Blocking "Star Tap" minigame: tap the target on the touch screen for ~15s.
+    // Returns the score (hits). Off device / not started -> returns 0.
+    int runMinigame();
+
 private:
     void scanInput();
     Screen* current();

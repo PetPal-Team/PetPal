@@ -151,6 +151,14 @@ void SaveManager::encodeBody(ByteWriter& w, const PersistentState& s) {
     w.putString(s.account.id);
     w.putString(s.account.token);
     w.putU8(s.account.linked ? 1 : 0);
+
+    // --- v4: needs (hunger + decay clock) + care streak + pet-sync clock ---
+    w.putU8(s.pet.hunger_);
+    w.putU64(s.pet.lastDecayAt_);
+    w.putU32(s.streak.current);
+    w.putU32(s.streak.best);
+    w.putU64(s.streak.lastCareDay);
+    w.putU64(s.account.petSyncAt);
 }
 
 bool SaveManager::decodeBody(ByteReader& r, PersistentState& s, uint16_t version) {
@@ -258,6 +266,22 @@ bool SaveManager::decodeBody(ByteReader& r, PersistentState& s, uint16_t version
         s.account.linked = r.getU8() != 0;
     } else {
         s.account = Account{};
+    }
+
+    // --- v4: needs + care streak + pet-sync clock (absent in <=v3 saves) ---
+    if (version >= 4) {
+        s.pet.hunger_       = r.getU8();
+        s.pet.lastDecayAt_  = r.getU64();
+        s.streak.current     = r.getU32();
+        s.streak.best        = r.getU32();
+        s.streak.lastCareDay = r.getU64();
+        s.account.petSyncAt  = r.getU64();
+    } else {
+        // Upgrade an older pet: assume a comfortably-fed belly, and anchor the
+        // decay clock to the last save so the first catch-up drains sensibly.
+        s.pet.hunger_      = 80;
+        s.pet.lastDecayAt_ = s.meta.lastSavedAt;
+        s.streak = Streak{};
     }
 
     return r.ok();

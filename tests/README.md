@@ -20,7 +20,8 @@ g++ -std=c++17 -I include tests/test_main.cpp \
     source/friends/Friend.cpp source/friends/FriendList.cpp \
     source/journal/Journal.cpp source/adventure/Adventure.cpp \
     source/achievements/Achievements.cpp source/netpass/NetPassManager.cpp \
-    source/save/SaveManager.cpp source/util/Crc32.cpp source/util/Time.cpp \
+    source/save/SaveManager.cpp source/util/Crc32.cpp source/util/NameFilter.cpp \
+    source/util/Time.cpp \
     -o petpal_tests && ./petpal_tests
 ```
 
@@ -32,8 +33,12 @@ output ends with `N checks, 0 failure(s)`.
 | Area              | Checks |
 |-------------------|--------|
 | Pet progression   | naming, XP/level-up, evolution thresholds |
+| Needs / mood / streak | hunger fill, real-time decay, derived mood, daily streak + milestone |
 | Inventory         | add/remove saturation, coin spend guard |
 | NetPass pipeline  | packet build/validate/CRC, loopback poll, friend dedupe |
 | Achievements      | unlock-once semantics |
 | Adventure         | timing + reward rolls |
-| Save format       | serialize → deserialize equality, corruption detection |
+| Save format       | serialize → deserialize equality (through v4), corruption detection |
+| Account save (v3/v4) | id/token/linked + streak + petSyncAt round-trip; cross-device snapshot adoption |
+| JsonLite          | string / int / long / bool / string-array field extraction |
+| Name filter       | banned-word + leetspeak detection, innocent look-alikes pass |

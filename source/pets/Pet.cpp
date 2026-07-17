@@ -34,6 +34,7 @@ Pet::Pet()
       experience_(0),
       happiness_(80),
       energy_(80),
+      hunger_(80),
       friendship_(0),
       adventureRank_(0),
       streetpassEncounters_(0),
@@ -62,6 +63,7 @@ Pet Pet::createStarter(Species species, const char* name) {
     };
     const int s = static_cast<int>(species);
     p.setColors(kDefaults[s][0], kDefaults[s][1], kDefaults[s][2]);
+    p.lastDecayAt_ = nowSeconds(); // anchor the needs clock at creation
     return p;
 }
 
@@ -147,10 +149,11 @@ ActionResult Pet::addExperience(uint32_t xp) {
 // -----------------------------------------------------------------------------
 ActionResult Pet::feed(ItemId food) {
     ActionResult res;
-    int restore = 12;
-    if (itemCategory(food) == ItemCategory::RareFood) restore = 30;
-    if (food == favoriteItem_) restore += 8; // pets love their favorite
-    energy_    = clampStat(energy_ + restore);
+    int fill = 20;
+    if (itemCategory(food) == ItemCategory::RareFood) fill = 40;
+    if (food == favoriteItem_) fill += 10; // pets love their favorite
+    hunger_    = clampStat(hunger_ + fill);      // a meal fills the belly
+    energy_    = clampStat(energy_ + fill / 3);  // ...and gives a little energy
     happiness_ = clampStat(happiness_ + 4);
     res.statChanged = true;
     // A small XP nibble for caretaking.
@@ -167,6 +170,15 @@ ActionResult Pet::play() {
     res.statChanged = true;
     ActionResult xp = addExperience(10);
     res.leveledUp = xp.leveledUp; res.newLevel = xp.newLevel;
+    res.canEvolveNow = canEvolve();
+    return res;
+}
+
+ActionResult Pet::rest() {
+    ActionResult res;
+    energy_    = clampStat(energy_ + 25); // a good nap
+    happiness_ = clampStat(happiness_ + 2);
+    res.statChanged = true;
     res.canEvolveNow = canEvolve();
     return res;
 }
@@ -190,6 +202,10 @@ ActionResult Pet::talk() {
 
 void Pet::addFriendship(uint32_t amount) {
     friendship_ += amount;
+}
+
+void Pet::addHappiness(int delta) {
+    happiness_ = clampStat(static_cast<int>(happiness_) + delta);
 }
 
 // -----------------------------------------------------------------------------
@@ -253,11 +269,41 @@ TransformForm Pet::currentForm() const {
     return TransformForm::None;
 }
 
-void Pet::applyDecay(uint32_t days) {
-    if (days == 0) return;
-    const int drop = std::min<int>(days * 5, kStatMax);
-    energy_    = clampStat(energy_ - drop);
-    happiness_ = clampStat(happiness_ - drop / 2);
+Mood Pet::mood() const {
+    // The lowest healthy need dictates the pressing mood (hunger first, then
+    // energy, then happiness). If everything is comfortable, blend to Happy.
+    if (hunger_    <= kNeedLowThreshold) return Mood::Hungry;
+    if (energy_    <= kNeedLowThreshold) return Mood::Tired;
+    if (happiness_ <= kNeedLowThreshold) return Mood::Sad;
+    const int avg = (static_cast<int>(happiness_) + energy_ + hunger_) / 3;
+    return avg >= 75 ? Mood::Happy : Mood::Content;
+}
+
+void Pet::applyServerSnapshot(const char* name, int species, int stage, int level,
+                              int happiness, int energy, int hunger) {
+    if (name && name[0]) setName(name); // runs the profanity filter like any name
+    if (species >= 0 && species < kSpeciesCount) species_ = static_cast<Species>(species);
+    if (stage >= 0 && stage < kEvolutionStageCount) stage_ = static_cast<EvolutionStage>(stage);
+    if (level >= 1) level_ = static_cast<uint16_t>(level > kMaxLevel ? kMaxLevel : level);
+    if (happiness >= 0) happiness_ = clampStat(happiness);
+    if (energy >= 0)    energy_    = clampStat(energy);
+    if (hunger >= 0)    hunger_    = clampStat(hunger);
+}
+
+void Pet::catchUpTo(Timestamp now) {
+    if (lastDecayAt_ == 0) { lastDecayAt_ = now; return; } // first-ever: just anchor
+    if (now <= lastDecayAt_) return;                        // clock didn't advance
+    const uint64_t hours = (now - lastDecayAt_) / 3600ULL;
+    if (hours == 0) return;                                 // sub-hour: let it accrue
+    // Per-need drop, clamped so a very long absence can't underflow the stat math.
+    auto drop = [&](uint8_t rate) {
+        const uint64_t d = hours * static_cast<uint64_t>(rate);
+        return static_cast<int>(d > kStatMax ? kStatMax : d);
+    };
+    hunger_    = clampStat(hunger_    - drop(kHungerDecayPerHour));
+    energy_    = clampStat(energy_    - drop(kEnergyDecayPerHour));
+    happiness_ = clampStat(happiness_ - drop(kHappinessDecayPerHour));
+    lastDecayAt_ += hours * 3600ULL;                        // keep the sub-hour remainder
 }
 
 } // namespace petpal

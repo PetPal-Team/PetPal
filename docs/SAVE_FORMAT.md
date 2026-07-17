@@ -33,7 +33,7 @@ falls back to `save.bak`.
 | Offset | Type  | Field    | Notes |
 |-------:|-------|----------|-------|
 | 0      | u32   | magic    | `0x4C415050` (`kSaveMagic`, "PPAL") |
-| 4      | u16   | version  | `kSaveVersion` (currently `1`) |
+| 4      | u16   | version  | `kSaveVersion` (currently `4`) |
 | 6      | u16   | reserved | `0` |
 | 8      | u32   | bodyLen  | byte length of the body that follows |
 | 12     | u32   | bodyCrc  | CRC-32 (IEEE) of the body bytes |
@@ -167,6 +167,22 @@ Then `entryCount` records (stored newest-first):
 | str  | id (`PP-XXXX-XXXX`, empty until first online boot) |
 | str  | token (per-device credential; empty after linking) |
 | u8   | linked (0/1 — adopted a phone account's id) |
+
+### 12. Needs + care streak + sync clock (v4+)
+| Type | Field |
+|------|-------|
+| u8   | hunger (fullness 0–100; 100 = full) |
+| u64  | lastDecayAt (Unix seconds; the needs-decay clock) |
+| u32  | streak.current (consecutive care days) |
+| u32  | streak.best (longest chain reached) |
+| u64  | streak.lastCareDay (epoch-day index of the last tend) |
+| u64  | account.petSyncAt (server pet `updatedAt` in **ms** last reconciled; 0 = never) |
+
+> On load of a ≤v3 save these default to `hunger=80`,
+> `lastDecayAt=meta.lastSavedAt`, an empty streak, and `petSyncAt=0`, so upgrading
+> never breaks. `Mood` is derived from happiness/energy/hunger at runtime and is
+> **not** stored. `petSyncAt` powers cross-device continuity: a linked console
+> adopts the shared pet when the server copy is newer, else pushes its own.
 
 ## Size budget
 

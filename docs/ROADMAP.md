@@ -43,11 +43,11 @@ Status legend: ✅ done in this starter · 🔨 partial / stubbed · ⬜ planned
 * 🔨 Slide transitions are hooked (tween) but screens don't yet offset by it.
 * ⬜ Particle bursts for celebrations.
 
-## Phase 5 — Audio ⬜
-* ⬜ `ndsp` init + a small `AudioManager` (BGM + SFX channels).
-* ⬜ Wire SFX/jingle into `UIManager::celebrate()` and button taps; honor the
-  Settings volume sliders.
-* ⬜ Evolution sequence music.
+## Phase 5 — Audio ✅
+* ✅ `ndsp` init + audio layer (streamed looping BGM + SFX channels).
+* ✅ SFX/jingle wired into taps, feeding, and `UIManager::celebrate()`; honors the
+  Settings music/SFX volume sliders.
+* 🔨 A dedicated evolution-sequence track (reuses the reward jingle today).
 
 ## Phase 6 — Art & polish ⬜
 * ⬜ Author species sprites per stage + animation frames; build the citro2d
@@ -55,11 +55,25 @@ Status legend: ✅ done in this starter · 🔨 partial / stubbed · ⬜ planned
 * ⬜ Menu icons, backgrounds, environment art per location.
 * ⬜ Homebrew icon/banner (`icon.png`, `banner.png`) + SMDH metadata.
 
-## Phase 7 — Content depth ⬜
-* ⬜ Shop screen (spend coins on food/accessories/decorations).
-* ⬜ Food picker UI for feeding (today it auto-picks the favorite/first food).
+## Phase 7 — Content depth ✅ / 🔨
+* ✅ Shop screen (spend coins on food / rare treats / evolution shards).
+* 🔨 Food picker UI for feeding on 3DS (still auto-picks favorite/first; the
+  Android companion has a picker).
 * ⬜ Per-location adventure flavor text & rarer drop tables.
 * ⬜ More journal templates per event.
+
+## Phase 8 — Care, identity & live ops ✅  (shipped after the initial release)
+* ✅ **Needs + mood** (save v4): `hunger` need, real-time per-hour decay
+  (`Pet::catchUpTo`), a derived `Mood`, and a `Rest` action.
+* ✅ **Daily care streak** with a coin milestone every 7 days (`Streak`).
+* ✅ **Star Tap minigame** — a blocking `UIManager::runMinigame()` modal launched
+  with **Y** on the Pet screen; rewards via `Game::rewardMinigame`.
+* ✅ **Server identity** (`AccountClient` + teampetpal.com): a minted pet ID,
+  boot **ban check** (red 401 screen), and a **version check**.
+* ✅ **Phone linking + cross-device continuity** — `/api/link` folds the 3DS into
+  a shared (multi-token) account; `syncPetWithServer` reconciles the pet at boot.
+* ✅ **Profile badges** shown next to the pet name (from the boot `petstatus`),
+  admin-assigned and gated behind Google Authenticator TOTP (server-side).
 
 ---
 
@@ -74,7 +88,8 @@ them with minimal churn:
   `Adventure`. `World` mask is 16-bit (room to grow; widen if > 16).
 * **Seasonal events** — gate content on `Time` (date checks); event flags fit in
   reserved fields or a new save section (bump `kSaveVersion`).
-* **Minigames** — new `Screen` subclasses; rewards flow through `Game` verbs.
+* **Minigames** — ✅ first one shipped (Star Tap, a blocking `UIManager` modal);
+  more can be `Screen` subclasses or modals, rewards flowing through `Game` verbs.
 * **Trading** — extend `PetPalPacket` (bump `kNetPassVersion`) with an offer
   block; the transport + validation path is unchanged.
 * **Community events** — aggregate via NetPass packets; tally in a new save
@@ -85,8 +100,9 @@ them with minimal churn:
   transport behind `INetPassTransport`-style abstraction.
 
 ## Known gaps / TODO markers in code
-* `CecdTransport` CEC box exchange is unverified on hardware (see Phase 3).
-* `celebrate()` does not yet spawn particles or play sound.
+* `CecdTransport` is retired — real CEC boxes are a homebrew dead end; the active
+  transport is the internet relay `HttpPassTransport` (see NETPASS_INTEGRATION.md).
+* `celebrate()` plays audio but does not yet spawn particles.
 * Slide transition value is computed but not applied to screen draw offsets.
 * Several accessories/styles render as no-ops in `PetRenderer` until art lands.
-* Feeding auto-selects food; a picker is planned.
+* Feeding auto-selects food on the 3DS; a picker is planned (Android has one).
