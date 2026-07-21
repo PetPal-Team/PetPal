@@ -57,7 +57,11 @@ public:
     static bool fetchPet(const char* id, const char* token, ServerPet& out);
 
     // POST /api/account {pet:{...}} -> push our pet snapshot. True on success.
-    static bool savePet(const char* id, const char* token, const ServerPet& in);
+    // When outUpdatedAt is non-null it receives the server's authoritative write
+    // timestamp, which the caller must store as its sync marker (never its own
+    // clock — the 3DS RTC is often wrong). See Game::pushPetToServer.
+    static bool savePet(const char* id, const char* token, const ServerPet& in,
+                        unsigned long long* outUpdatedAt = nullptr);
 };
 
 } // namespace petpal

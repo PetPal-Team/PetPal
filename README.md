@@ -159,7 +159,7 @@ PetPal/
 
 ## 🚧 Status
 <<<<<<< HEAD
-Current release: **v0.1.4** (`kAppVersion` in `include/core/Types.h`; save format
+Current release: **v0.1.5** (`kAppVersion` in `include/core/Types.h`; save format
 **v4**). The full core loop, care/mood/streak system, internet passes, phone
 linking + pet continuity, minigame, and profile badges are implemented and the
 model layer is covered by host tests. Known rough edges / planned: an in-app food

@@ -331,9 +331,12 @@ void Game::pushPetToServer() {
     sp.hunger     = state_.pet.hunger();
     sp.coins      = static_cast<int>(state_.inventory.coins());
     sp.encounters = static_cast<int>(state_.pet.streetpassEncounters());
+    unsigned long long serverUpdatedAt = 0;
     if (AccountClient::savePet(state_.account.id.c_str(),
-                               state_.account.token.c_str(), sp)) {
-        state_.account.petSyncAt = static_cast<uint64_t>(nowSeconds()) * 1000ULL;
+                               state_.account.token.c_str(), sp, &serverUpdatedAt)) {
+        // Store the SERVER's write time (not our RTC), so the next boot's
+        // "is the phone newer?" comparison is clock-skew proof.
+        if (serverUpdatedAt != 0) state_.account.petSyncAt = serverUpdatedAt;
         requestSave();
     }
 }

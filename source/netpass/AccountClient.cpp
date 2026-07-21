@@ -154,7 +154,8 @@ bool AccountClient::fetchPet(const char* id, const char* token, ServerPet& out) 
     return true;
 }
 
-bool AccountClient::savePet(const char* id, const char* token, const ServerPet& in) {
+bool AccountClient::savePet(const char* id, const char* token, const ServerPet& in,
+                            unsigned long long* outUpdatedAt) {
     if (!id || !id[0]) return false;
     CURL* c = curl_easy_init();
     if (!c) return false;
@@ -180,7 +181,10 @@ bool AccountClient::savePet(const char* id, const char* token, const ServerPet& 
     commonOpts(c, &body);
 
     if (!perform(c, hdrs, body)) return false;
-    return jsonlite::field(body, "status") == "ok";
+    if (jsonlite::field(body, "status") != "ok") return false;
+    if (outUpdatedAt)
+        *outUpdatedAt = static_cast<unsigned long long>(jsonlite::longField(body, "updatedAt", 0));
+    return true;
 }
 
 bool AccountClient::link(const char* id, const char* token, const char* targetId) {
@@ -215,7 +219,7 @@ RegisterResult AccountClient::registerDevice(const char*) { return {}; }
 BanState       AccountClient::checkBanned(const char*, const char*, const char*, const char*, std::vector<std::string>*) { return BanState::Unknown; }
 bool           AccountClient::link(const char*, const char*, const char*) { return false; }
 bool           AccountClient::fetchPet(const char*, const char*, ServerPet& out) { out = ServerPet{}; return false; }
-bool           AccountClient::savePet(const char*, const char*, const ServerPet&) { return false; }
+bool           AccountClient::savePet(const char*, const char*, const ServerPet&, unsigned long long*) { return false; }
 } // namespace petpal
 
 #endif
