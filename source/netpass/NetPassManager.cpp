@@ -18,7 +18,12 @@ PetPalPacket NetPassManager::buildPacket(const Pet& pet, ItemId gift, uint16_t g
     PetPalPacket pkt{};
     pkt.magic     = kNetPassMagic;
     pkt.version   = kNetPassVersion;
-    pkt.reserved0 = 0;
+    // Stamp our app version (minor<<8 | patch) into the otherwise-unused
+    // reserved0 slot so teampetpal.com/api/pass can refuse out-of-date clients
+    // (see functions/api/pass.js, cfg:min_app_version). It's covered by the CRC
+    // below and ignored by receivers, so it stays compatible with older builds
+    // that send 0 here.
+    pkt.reserved0 = static_cast<uint16_t>(kAppVersion & 0xFFFF);
 
     pkt.petId = pet.id();
     std::memset(pkt.name, 0, sizeof(pkt.name));

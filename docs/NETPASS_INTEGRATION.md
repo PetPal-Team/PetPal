@@ -24,7 +24,7 @@ slot). Defined in `include/netpass/PetPalPacket.h`.
 |----:|------|-------|-------|
 | 0   | u32  | magic | `0x50455450` (`kNetPassMagic`) — identifies a PetPal payload |
 | 4   | u16  | version | `kNetPassVersion` (1) |
-| 6   | u16  | reserved0 | flags / future |
+| 6   | u16  | reserved0 | sender's app-version stamp `kAppVersion & 0xFFFF` (minor<<8 \| patch); `0` on builds that predate this stamp. Read by the server pass gate; ignored by 3DS receivers |
 | 8   | u64  | petId | sender's unique pet id |
 | 16  | char[13] | name | null-terminated, ≤ 12 chars |
 | 29  | u8   | species | `Species` |

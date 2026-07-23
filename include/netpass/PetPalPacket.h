@@ -18,8 +18,11 @@ namespace petpal {
 struct PetPalPacket {
     // --- Header -------------------------------------------------------------
     uint32_t magic;        // kNetPassMagic, identifies a PetPal payload
-    uint16_t version;      // kNetPassVersion
-    uint16_t reserved0;    // padding / future flags
+    uint16_t version;      // kNetPassVersion (wire protocol; receivers require ==)
+    uint16_t reserved0;    // sender's app version stamp: kAppVersion & 0xFFFF
+                           // (minor<<8 | patch). 0 on builds that predate this
+                           // stamp. Used by the server pass gate; ignored by
+                           // 3DS receivers.
 
     // --- Pet identity & appearance -----------------------------------------
     uint64_t petId;        // sender's unique pet id
