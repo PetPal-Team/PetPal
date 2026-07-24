@@ -3,7 +3,7 @@ Hey, I am taking a break from almost everything. This includes Juxt, Discord, An
 
 All PetPal functions will continue to work as expected during this pause, no new updates will be released.
 Thanks to everyone who supported the project, I hope to return soon.
-Thanks pals, Abi
+Thanks pals, [Abi](https://github.com/DisLoPik) 
 
 # 🐾 PetPal — a StreetPass-style Virtual Pet for the Nintendo 3DS
 
