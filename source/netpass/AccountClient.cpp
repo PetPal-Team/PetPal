@@ -124,6 +124,28 @@ BanState AccountClient::checkBanned(const char* id, const char* token, const cha
     return jsonlite::boolField(body, "banned", false) ? BanState::Yes : BanState::No;
 }
 
+bool AccountClient::reportName(const char* id, const char* token, const char* petName) {
+    if (!id || !id[0] || !petName || !petName[0]) return false;
+    if (!token || !token[0]) return false;   // server only stores the name for the owner
+    CURL* c = curl_easy_init();
+    if (!c) return false;
+
+    // Same endpoint the boot ban-check uses; here we only care that it persists the
+    // name (petstatus writes rec.pet.name when the token matches). Kept snappy so
+    // the onboarding -> hub transition never stalls on a slow connection.
+    std::string body;
+    std::string url = std::string(kBase) + "/api/petstatus?id=" + urlEncode(id) +
+                      "&token=" + urlEncode(token) + "&device=3ds&name=" + urlEncode(petName);
+
+    curl_easy_setopt(c, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT, 4L);
+    curl_easy_setopt(c, CURLOPT_TIMEOUT, 6L);
+    commonOpts(c, &body);
+
+    if (!perform(c, nullptr, body)) return false;
+    return jsonlite::field(body, "status") == "ok";
+}
+
 bool AccountClient::fetchPet(const char* id, const char* token, ServerPet& out) {
     out = ServerPet{};
     if (!id || !id[0]) return false;
@@ -217,6 +239,7 @@ bool AccountClient::link(const char* id, const char* token, const char* targetId
 namespace petpal {
 RegisterResult AccountClient::registerDevice(const char*) { return {}; }
 BanState       AccountClient::checkBanned(const char*, const char*, const char*, const char*, std::vector<std::string>*) { return BanState::Unknown; }
+bool           AccountClient::reportName(const char*, const char*, const char*) { return false; }
 bool           AccountClient::link(const char*, const char*, const char*) { return false; }
 bool           AccountClient::fetchPet(const char*, const char*, ServerPet& out) { out = ServerPet{}; return false; }
 bool           AccountClient::savePet(const char*, const char*, const ServerPet&, unsigned long long*) { return false; }

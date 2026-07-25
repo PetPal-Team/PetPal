@@ -276,6 +276,17 @@ void Game::createPet(Species species, const char* name) {
 
     publishSelf();
     requestSave();
+
+#ifdef __3DS__
+    // Push the just-chosen name to the account right now so the admin panel shows
+    // it this session. The boot ban-check reports the name too, but it runs before
+    // onboarding (in init()), so on a fresh install it sends no name - without this
+    // a player who onboards and never has a second ONLINE boot stays nameless.
+    // Best-effort: no-op offline or before the account is registered.
+    if (!state_.account.id.empty())
+        AccountClient::reportName(state_.account.id.c_str(),
+                                  state_.account.token.c_str(), state_.pet.name());
+#endif
 }
 
 // -----------------------------------------------------------------------------

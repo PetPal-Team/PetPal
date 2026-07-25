@@ -47,6 +47,13 @@ public:
                                const char* petName = nullptr,
                                std::vector<std::string>* outBadges = nullptr);
 
+    // GET /api/petstatus?id=&token=&device=3ds&name= -> just push our pet name to
+    // the account so the admin panel shows it. Call the instant onboarding names
+    // the pet: the boot ban-check runs BEFORE onboarding, so on a fresh install it
+    // only ever reports the previous session's name (none), leaving a first-and-
+    // only session nameless. Best-effort (short timeout); returns true on HTTP 200.
+    static bool reportName(const char* id, const char* token, const char* petName);
+
     // POST /api/link {id, token, targetId}. True when the phone account accepted
     // the link (caller should then adopt targetId locally).
     static bool link(const char* id, const char* token, const char* targetId);
