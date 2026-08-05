@@ -1,10 +1,3 @@
-# Development has been paused...
-Hey, I am taking a break from almost everything. This includes Juxt, Discord, And PetPal Development. Im in a really bad mindset and have a lot of personal issues to deal with. I will be back when I feel better and have the time to work on PetPal again.
-
-All PetPal functions will continue to work as expected during this pause, no new updates will be released.
-Thanks to everyone who supported the project, I hope to return soon.
-Thanks pals, [Abi](https://github.com/DisLoPik) 
-
 # 🐾 PetPal — a StreetPass-style Virtual Pet for the Nintendo 3DS
 
 PetPal is a homebrew virtual-pet game in the spirit of the StreetPass era. You
