@@ -19,7 +19,7 @@ private:
     int   selected_ = 0;
     int   scroll_   = 0;
     float flash_    = 0.0f;   // seconds remaining to show the check result
-    char  flashMsg_[64] = {0};
+    char  flashMsg_[128] = {0};  // result of a manual "check for passes" (X)
 };
 
 } // namespace petpal

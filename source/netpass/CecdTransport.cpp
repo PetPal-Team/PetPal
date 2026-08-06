@@ -1,18 +1,22 @@
 // =============================================================================
 //  PetPal - CecdTransport.cpp
-//  REAL StreetPass transport over the 3DS CECD service (cecd:u). libctru ships
+//  REAL StreetPass transport over the 3DS CECD service (cecd:s, the system CEC
+//  service NetPass uses; falls back to cecd:u). libctru ships
 //  no CECD bindings, so this implements the raw IPC client directly. NetPass
 //  relays these same CEC message boxes over the internet, so wiring CECD gives
 //  both local StreetPass and NetPass for free.
 //
 //  Compiled ONLY for the 3DS (__3DS__). The PC/test build uses LoopbackTransport.
 //
-//  IPC command IDs / parameter layouts / structures below are taken from 3dbrew
-//  and the Citra/Azahar HLE implementation. The message read/write path is
-//  ABI-correct. CEC message-box *creation/exchange* for a homebrew title is the
-//  part that can only be validated on real hardware (with another console or
-//  NetPass) - it is written best-effort and degrades safely on any failure
-//  (every call is bounded and checked; nothing here can hang).
+//  IPC command IDs / parameter layouts / structures below are taken from 3dbrew,
+//  the Citra/Azahar HLE implementation, and - crucially - NetPass's own working
+//  cecd.c (Sorunome/Silentium). The box-CREATION path in particular mirrors her
+//  registerStreetpassApplication() exactly: CEC box files must be made with
+//  OpenRawFile(0x01)+WriteRawFile(0x05) using specific open flags, NOT
+//  OpenAndWrite(0x11) ("just openAndWrite won't work" - the NetPass author). Once
+//  the box exists, UPDATES to those files do use OpenAndWrite, matching her code.
+//  This creation path is validated on real hardware by NetPass; nothing here can
+//  hang (every call is bounded and checked) and it degrades safely on failure.
 // =============================================================================
 #if defined(__3DS__)
 
@@ -32,11 +36,16 @@ namespace {
 //  cecd:u raw IPC client
 // -----------------------------------------------------------------------------
 Handle g_cecd = 0;
+const char* g_cecdSvc = "";   // which service actually opened: "cecd:s" / "cecd:u"
 
-// CEC "program id" identifying PetPal's message box. Must be identical across
-// all PetPal installs so boxes match, and stable across versions. Derived from
-// our title's unique id (0xf00d5). Change alongside the RSF UniqueId.
-constexpr u32 kCecProgramId = 0x000F00D5;
+// CEC "program id" identifying PetPal's message box. This MUST be the low 32 bits
+// of our 64-bit title id (how CEC keys every box, and what cecd:u authorizes a
+// process to touch for its OWN title). PetPal's title id is 0x000400000F00D500
+// (category 0x00040000, UniqueId 0xf00d5, variation 0x00), so the CEC id is
+// (uniqueId << 8) | variation = 0x0F00D500 - NOT the bare unique id 0x000F00D5.
+// Using the bare unique id is why cecd:u rejected box creation with 0xC8A10BF0.
+// The box then lives under /CEC/0f00d500/. Change alongside the RSF UniqueId.
+constexpr u32 kCecProgramId = 0x0F00D500;
 
 enum class Path : u32 {
     MboxList   = 1,
@@ -62,6 +71,14 @@ enum OpenFlag : u32 {
     FlagCheck  = 1u << 4,
 };
 
+// EXACT open flags NetPass uses to CREATE each kind of CEC file (from her working
+// registerStreetpassApplication). cecd is picky here and these are not obvious
+// combinations of the bits above, so use the proven raw values verbatim - do NOT
+// "clean them up". Directories use 8; most files use 6; the inbox info uses 0x14.
+constexpr u32 kOpenDir   = 8;                    // create a CEC directory
+constexpr u32 kOpenFile  = 6;                    // create+write most CEC files
+constexpr u32 kOpenInbox = (1u << 4) | (1u << 2); // 0x14, the inbox info file
+
 // CecCommand values for Start/Stop (3dbrew "CECD Services"). START kicks the CEC
 // daemon into its normal scan/exchange cycle; the system then swaps our box with
 // passers-by (locally) or via NetPass (over the internet) - both use this state.
@@ -79,7 +96,19 @@ enum CecCommand : u32 {
 
 Result cecdOpen() {
     if (g_cecd) return 0;
-    return srvGetServiceHandle(&g_cecd, "cecd:u");
+    // cecd:s is the SYSTEM CEC service (the one NetPass uses): it can create and
+    // operate on ANY box's title id. cecd:u (user) restricts a process to its own
+    // title's box, so creating PetPal's box there is rejected with 0xC8A10BF0
+    // (CEC / InvalidState) - the exact error we hit. Prefer cecd:s; fall back to
+    // cecd:u only so message I/O on existing boxes still degrades gracefully when
+    // cecd:s isn't granted (e.g. running as a .3dsx under the Homebrew Launcher
+    // rather than an installed CIA, where the exheader can't request cecd:s).
+    Result rc = srvGetServiceHandle(&g_cecd, "cecd:s");
+    if (R_SUCCEEDED(rc)) { g_cecdSvc = "cecd:s"; return 0; }
+    rc = srvGetServiceHandle(&g_cecd, "cecd:u");
+    if (R_SUCCEEDED(rc)) { g_cecdSvc = "cecd:u"; return 0; }
+    g_cecdSvc = "";
+    return rc;
 }
 void cecdClose() {
     if (g_cecd) { svcCloseHandle(g_cecd); g_cecd = 0; }
@@ -97,6 +126,22 @@ Result cmdOpen(u32 programId, Path path, u32 flags, u32* outSize) {
     Result rc = svcSendSyncRequest(g_cecd);
     if (R_FAILED(rc)) return rc;
     if (outSize) *outSize = cmd[2];
+    return static_cast<Result>(cmd[1]);
+}
+
+// WriteRawFile(0x00050042): size, <- data (read). Writes `buf` to the file most
+// recently opened with cmdOpen (OpenRawFile). This stateful open-then-write pair
+// is how CEC box files must be CREATED; OpenAndWrite(0x11) does not create them
+// correctly (per the NetPass author: "just openAndWrite won't work"). Call
+// immediately after cmdOpen with nothing else touching g_cecd in between.
+Result cmdWriteRawFile(const void* buf, u32 size) {
+    u32* cmd = getThreadCommandBuffer();
+    cmd[0] = IPC_MakeHeader(0x5, 1, 2);
+    cmd[1] = size;
+    cmd[2] = IPC_Desc_Buffer(size, IPC_BUFFER_R);
+    cmd[3] = reinterpret_cast<u32>(const_cast<void*>(buf));
+    Result rc = svcSendSyncRequest(g_cecd);
+    if (R_FAILED(rc)) return rc;
     return static_cast<Result>(cmd[1]);
 }
 
@@ -254,6 +299,17 @@ struct CecBoxInfoHeader {
 constexpr int kMessageHeaderSize = 0x70; // CecMessageHeader
 constexpr int kMessageIdOffset   = 0x20; // u8[8] message_id within the header
 
+// OutBoxIndex____ header (3dbrew "CEC_Messages"), followed by one 8-byte message
+// id per outbox message. A freshly-created outbox has zero messages, so creation
+// writes just this 8-byte header (matches NetPass's registerStreetpassApplication).
+struct CecOBIndex {
+    u16 magic;        // 0x6767
+    u16 padding0;
+    u32 num_messages; // 0
+};
+constexpr u16 kOBIndexMagic = 0x6767;
+static_assert(sizeof(CecOBIndex) == 8, "CecOBIndex must be 8 bytes");
+
 // MBoxInfo____ file (3dbrew "StreetPass"). We only touch magic + enabled; the
 // rest (private_id, hmac_key) is provisioned by cecd on box creation and must be
 // preserved when we rewrite the file, so read-modify-write the whole 0x60 blob.
@@ -270,6 +326,23 @@ struct CecMBoxInfo {
 };
 constexpr u16 kMBoxInfoMagic = 0x6363;
 static_assert(sizeof(CecMBoxInfo) == 0x60, "CecMBoxInfo must be 0x60 bytes");
+
+// /CEC/MBoxList____ - the GLOBAL registry of message boxes (3dbrew "CEC_Messages";
+// struct verified against the NetPass source's CecMboxListHeader). The CEC daemon
+// only scans/relays boxes listed here, so a box that exists on disk but is absent
+// from this file is invisible to StreetPass AND to NetPass - the exact gap flagged
+// by the NetPass author. 0x18C bytes: a small header + 24 fixed 16-byte name slots.
+struct CecMBoxListHeader {
+    u16  magic;             // 0x00  0x6868
+    u16  padding0;          // 0x02
+    u32  version;           // 0x04  always 1
+    u32  num_boxes;         // 0x08  <- count of populated box_names entries
+    char box_names[24][16]; // 0x0C  each: 8 lowercase-hex id chars + NUL padding
+};
+constexpr u16 kMBoxListMagic      = 0x6868;
+constexpr u32 kMBoxListSlots      = 24;  // physical name slots in the file
+constexpr u32 kMaxRegisteredBoxes = 12;  // system max # of boxes (per NetPass author)
+static_assert(sizeof(CecMBoxListHeader) == 0x18C, "CecMBoxListHeader must be 0x18C bytes");
 
 // CecMessageHeader (0x70). A written CEC message is this header IMMEDIATELY
 // followed by the body; ReadMessage returns the same. See NarcolepticK CECDocs.
@@ -308,20 +381,288 @@ const u8 kOutboxMsgId[8] = { 'P', 'E', 'T', 'P', 'A', 'L', 0x00, 0x01 };
 
 constexpr int kMaxInboxScan = 32;       // safety clamp on message enumeration
 
-// Ensure our box is flagged StreetPass-enabled. cecd fills in private_id/hmac
-// when it creates the box; we only flip the `enabled` byte, preserving the rest
-// via read-modify-write of the whole MBoxInfo blob. Best-effort and bounded.
-void ensureBoxEnabled(u32 titleId) {
+// Shared CEC message-integrity key. A retail StreetPass title ships a per-title key
+// baked into its ROM; every copy shares it so a passed message validates against
+// the receiver's box. PetPal does the same with one fixed 32-byte key identical
+// across ALL installs - a per-console or id-derived key (our old memcpy(&titleId))
+// would leave consoles unable to validate each other's pets. This is NOT a server
+// secret: it grants no access to teampetpal.com and, like any StreetPass key, lives
+// on every device by design. Sorunome: "the hmac key should be something actually
+// random ... it has to be the same for all installs."
+constexpr u8 kHmacKey[32] = {
+    0x8B,0x1E,0xF4,0x6C, 0x2A,0x77,0xD0,0x39,
+    0x5C,0xA1,0x93,0xE8, 0x14,0x6F,0xB2,0x4D,
+    0x70,0xC5,0x38,0x9A, 0xE1,0x26,0x5B,0xF3,
+    0x0D,0x84,0xA7,0x62, 0x19,0xCE,0x3F,0xB0,
+};
+
+// Message-box sizing, computed for PetPal's payload instead of copied from
+// NetPass's relay-everything defaults (Sorunome: "adjust ... message box size ...
+// then do some head math"). A CEC message is a 0x70 header + our packet (<=64 B)
+// ~= 176 B; 512 gives generous headroom for future packet growth.
+constexpr u32 kCecMaxMessageSize = 512;
+constexpr u32 kInboxMaxMessages  = 25;                              // hold up to 25 met pets
+constexpr u32 kInboxMaxBatch     = 25;
+constexpr u32 kInboxMaxBoxSize   = kInboxMaxMessages * kCecMaxMessageSize; // 12800
+constexpr u32 kOutboxMaxMessages = 1;                              // we broadcast one pet
+constexpr u32 kOutboxMaxBatch    = 1;
+constexpr u32 kOutboxMaxBoxSize  = 2 * kCecMaxMessageSize;         // 1024, small headroom
+
+// Write pixel (x,y) into a 48x48 RGB565 image laid out in the 3DS tiled format the
+// StreetPass box viewer / cectool expect: 8x8 tiles in raster order, Morton
+// (Z-order) within each tile. Verified against cectool's textureToBuf/tileToBuf
+// (recursive TL,TR,BL,BR down to 2x2). A plain linear buffer renders as garbage -
+// that was the "messed up icon" bug.
+inline void iconSetPixel(u16* dst, int x, int y, u16 color) {
+    constexpr int kTilesPerRow = 48 / 8;                       // 6
+    const int tileX = x >> 3, tileY = y >> 3;
+    const int tx = x & 7, ty = y & 7;
+    const int morton = (tx & 1) | ((ty & 1) << 1)
+                     | ((tx & 2) << 1) | ((ty & 2) << 2)
+                     | ((tx & 4) << 2) | ((ty & 4) << 3);
+    dst[(tileY * kTilesPerRow + tileX) * 64 + morton] = color;
+}
+
+// Draw PetPal's 48x48 box icon: a white paw print on a teal field, in the tiled
+// layout above. Purely cosmetic, but a correct tiling is what makes it show as an
+// icon (not noise) in the CEC/StreetPass box list.
+void buildBoxIcon(u16* dst) {
+    constexpr u16 kBg  = 0x5E1B;   // ~#5BC0DE teal (RGB565)
+    constexpr u16 kPaw = 0xFFFF;   // white
+    const int tox[4] = { 11, 19, 29, 37 };   // four toe-bean centres (x)
+    const int toy[4] = { 22, 13, 13, 22 };   //                        (y)
+    for (int y = 0; y < 48; ++y) {
+        for (int x = 0; x < 48; ++x) {
+            u16 c = kBg;
+            const int dx = x - 24, dy = y - 33;               // main pad: ellipse rx12 ry10
+            if (dx * dx * 100 + dy * dy * 144 <= 144 * 100) c = kPaw;
+            for (int t = 0; t < 4; ++t) {                     // toe beans: circles r5
+                const int ex = x - tox[t], ey = y - toy[t];
+                if (ex * ex + ey * ey <= 25) c = kPaw;
+            }
+            iconSetPixel(dst, x, y, c);
+        }
+    }
+}
+
+// Ensure our box is provisioned the way exchange requires: StreetPass-enabled, the
+// right box-type flag, and - crucially - the shared HMAC key, so a box created by
+// an older PetPal build (which seeded the key from the title id) is upgraded to the
+// shared key on next boot. Read-modify-write of the whole MBoxInfo blob so cecd's
+// own fields (private_id, timestamps) are preserved. Best-effort and bounded.
+void ensureBoxProvisioned(u32 titleId) {
     CecMBoxInfo info;
     u32 got = 0;
-    if (R_FAILED(cmdOpenAndRead(titleId, Path::MboxInfo, FlagRead,
-                                &info, sizeof(info), &got)) ||
+    if (R_FAILED(cmdOpenAndRead(titleId, Path::MboxInfo, 0, &info, sizeof(info), &got)) ||
         got < sizeof(info) || info.magic != kMBoxInfoMagic) {
         return; // can't read a valid MBoxInfo; leave whatever cecd created
     }
-    if (info.enabled) return; // already enabled
-    info.enabled = 1;
-    cmdOpenAndWrite(titleId, Path::MboxInfo, FlagWrite, &info, sizeof(info));
+    bool dirty = false;
+    if (!info.enabled)               { info.enabled = 1;          dirty = true; }
+    if (info.mbox_type_flags != 0x1) { info.mbox_type_flags = 0x1; dirty = true; }
+    if (std::memcmp(info.hmac_key, kHmacKey, sizeof(kHmacKey)) != 0) {
+        std::memcpy(info.hmac_key, kHmacKey, sizeof(kHmacKey));
+        dirty = true;
+    }
+    if (dirty) cmdOpenAndWrite(titleId, Path::MboxInfo, 0, &info, sizeof(info));
+}
+
+// Case-insensitive compare of two 8-char hex ids (cecd maps the name string back
+// to a numeric id, so "000F00D5" and "000f00d5" are the same box).
+bool sameHexId(const char* a, const char* b) {
+    for (int i = 0; i < 8; ++i) {
+        char ca = a[i], cb = b[i];
+        if (ca >= 'A' && ca <= 'Z') ca = static_cast<char>(ca + 32);
+        if (cb >= 'A' && cb <= 'Z') cb = static_cast<char>(cb + 32);
+        if (ca != cb) return false;
+    }
+    return true;
+}
+
+// Register our box in the global /CEC/MBoxList____ so the system daemon (and, over
+// the internet, NetPass) actually scan and exchange it. cecd creates the per-box
+// dir/files but NEVER adds the box to this master list; without the entry nothing
+// knows the box exists. We read-modify-write the list, preserving every existing
+// entry, honoring the 12-box system maximum. Path::MboxList is global, so cecd
+// ignores the program-id argument (the file path has no id in it) - we pass 0.
+// Returns 0 when our box is in the list afterwards; a Result/sentinel otherwise.
+Result ensureBoxInList(u32 titleId) {
+    // Box name = the box's title id as 8 LOWERCASE hex digits, matching the CEC
+    // directory cecd creates ("/CEC/{:08x}/..."), NUL-padded to the 16-byte slot.
+    char want[9];
+    std::snprintf(want, sizeof(want), "%08lx", static_cast<unsigned long>(titleId));
+
+    CecMBoxListHeader list;
+    std::memset(&list, 0, sizeof(list));
+    u32 got = 0;
+    Result rc = cmdOpenAndRead(0, Path::MboxList, 0, &list, sizeof(list), &got);
+    const bool have = R_SUCCEEDED(rc) && got >= 0x0C && list.magic == kMBoxListMagic;
+    if (!have) {                                   // missing / empty / corrupt -> fresh
+        std::memset(&list, 0, sizeof(list));
+        list.magic     = kMBoxListMagic;
+        list.version   = 1;
+        list.num_boxes = 0;
+    }
+
+    u32 n = list.num_boxes;
+    if (n > kMBoxListSlots) n = kMBoxListSlots;    // guard a corrupt count (array safety)
+
+    for (u32 i = 0; i < n; ++i) {                  // already registered? nothing to do
+        if (sameHexId(list.box_names[i], want)) {
+            PP_LOG("mboxlist: box %s already listed (%lu boxes)", want, (unsigned long)n);
+            return 0;
+        }
+    }
+
+    if (n >= kMaxRegisteredBoxes) {                // at the system max, and not us
+        PP_WARN("mboxlist full (%lu boxes); box not registered", (unsigned long)n);
+        return static_cast<Result>(0xC8A1F00D);    // our sentinel: list full
+    }
+
+    // Append our name and bump the count, leaving every other entry untouched.
+    std::memset(list.box_names[n], 0, 16);
+    std::memcpy(list.box_names[n], want, 8);
+    list.num_boxes = n + 1;
+    list.magic     = kMBoxListMagic;               // in case we just initialized it
+    list.version   = 1;
+
+    // Write the updated list. NetPass reads MBoxList with program-id 0 but writes
+    // it back with the box's own title id, so mirror that exactly. MBoxList is a
+    // global file (its path carries no id), and OpenAndWrite is correct here
+    // because we are UPDATING an existing/derived file, not creating a box file.
+    rc = cmdOpenAndWrite(titleId, Path::MboxList, 0, &list, sizeof(list));
+    if (R_FAILED(rc)) { PP_WARN("mboxlist write failed: %08lx", (unsigned long)rc); return rc; }
+    PP_LOG("mboxlist: added box %s (now %lu boxes)", want, (unsigned long)(n + 1));
+    return 0;
+}
+
+// Create one CEC file: OpenRawFile(path, flag) then WriteRawFile(buf). This is the
+// exact create/write pair CEC requires (see cmdWriteRawFile). Returns the first
+// failing Result. Nothing may touch g_cecd between the two calls.
+Result createFile(u32 titleId, Path path, u32 flag, const void* buf, u32 size) {
+    Result rc = cmdOpen(titleId, path, flag, nullptr);
+    if (R_FAILED(rc)) return rc;
+    return cmdWriteRawFile(buf, size);
+}
+
+// Write the box's display name + icon. Used both at creation and to HEAL an
+// existing box whose icon predates the tiling fix (registerBox early-outs on an
+// already-listed box, so the icon must be refreshed separately). Returns the first
+// failing Result; touches only the name/icon files, never message state.
+Result writeBoxNameAndIcon(u32 titleId) {
+    u8 name[16] = { 'P',0, 'e',0, 't',0, 'P',0, 'a',0, 'l',0, 0,0, 0,0 }; // UTF-16LE
+    Result rc = createFile(titleId, Path::BoxTitle, kOpenFile, name, sizeof(name));
+    if (R_FAILED(rc)) return rc;
+
+    static u16 icon[48 * 48];
+    buildBoxIcon(icon);
+    return createFile(titleId, Path::BoxIcon, kOpenFile, icon, sizeof(icon));
+}
+
+// Create PetPal's full CEC message box, faithfully mirroring NetPass's
+// registerStreetpassApplication(). cecd does NOT create the box as a side effect of
+// message I/O and it does NOT add the box to the global list, so we must build the
+// whole structure ourselves: three directories, MBoxInfo, InboxInfo, OutboxInfo +
+// OutBoxIndex, a box title + icon, and finally the MBoxList entry. Every file is
+// made with OpenRawFile+WriteRawFile and the exact open flags NetPass uses. If the
+// box is already in the master list we early-out (so we never clobber a live box or
+// its waiting messages). Returns 0 on success; on failure returns the Result and
+// sets *step to the failing step (1..9) for the on-device self-test.
+Result registerBox(u32 titleId, int* step) {
+    if (step) *step = 0;
+
+    // Step 1: already registered? Then the box (and all its files) already exist.
+    {
+        CecMBoxListHeader list;
+        std::memset(&list, 0, sizeof(list));
+        u32 got = 0;
+        Result rc = cmdOpenAndRead(0, Path::MboxList, 0, &list, sizeof(list), &got);
+        if (R_SUCCEEDED(rc) && got >= 0x0C && list.magic == kMBoxListMagic) {
+            char want[9];
+            std::snprintf(want, sizeof(want), "%08lx", static_cast<unsigned long>(titleId));
+            u32 n = list.num_boxes;
+            if (n > kMBoxListSlots) n = kMBoxListSlots;
+            for (u32 i = 0; i < n; ++i)
+                if (sameHexId(list.box_names[i], want)) return 0;   // already done
+            if (n >= kMaxRegisteredBoxes) { if (step) *step = 1; return static_cast<Result>(0xC8A1F00D); }
+        }
+        // Missing/corrupt list is fine: we create everything, and the final
+        // ensureBoxInList() re-reads and (re)builds the list.
+    }
+
+    Result rc;
+
+    // Step 2: the three box directories (open flag 8).
+    if (R_FAILED(rc = cmdOpen(titleId, Path::MboxDir,   kOpenDir, nullptr))) { if (step) *step = 2; return rc; }
+    if (R_FAILED(rc = cmdOpen(titleId, Path::InboxDir,  kOpenDir, nullptr))) { if (step) *step = 2; return rc; }
+    if (R_FAILED(rc = cmdOpen(titleId, Path::OutboxDir, kOpenDir, nullptr))) { if (step) *step = 2; return rc; }
+
+    // Step 3: MBoxInfo (magic 0x6363), StreetPass-enabled, with the shared HMAC key
+    // baked in so every PetPal install can validate every other's passed messages.
+    {
+        CecMBoxInfo mbox;
+        std::memset(&mbox, 0, sizeof(mbox));
+        mbox.magic           = kMBoxInfoMagic;
+        mbox.title_id        = titleId;
+        mbox.mbox_type_flags = 0x1;
+        mbox.enabled         = 1;
+        std::memcpy(mbox.hmac_key, kHmacKey, sizeof(kHmacKey));
+        if (R_FAILED(rc = createFile(titleId, Path::MboxInfo, kOpenFile, &mbox, sizeof(mbox)))) {
+            if (step) *step = 3;
+            return rc;
+        }
+    }
+
+    // Step 4: InboxInfo (magic 0x6262, open flag 0x14).
+    {
+        CecBoxInfoHeader inbox;
+        std::memset(&inbox, 0, sizeof(inbox));
+        inbox.magic            = 0x6262;
+        inbox.box_info_size    = sizeof(CecBoxInfoHeader);
+        inbox.max_box_size     = kInboxMaxBoxSize;
+        inbox.max_message_num  = kInboxMaxMessages;
+        inbox.max_batch_size   = kInboxMaxBatch;
+        inbox.max_message_size = kCecMaxMessageSize;
+        if (R_FAILED(rc = createFile(titleId, Path::InboxInfo, kOpenInbox, &inbox, sizeof(inbox)))) {
+            if (step) *step = 4;
+            return rc;
+        }
+    }
+
+    // Step 5: OutboxInfo (magic 0x6262) + Step 6: OutBoxIndex (magic 0x6767).
+    {
+        CecBoxInfoHeader outbox;
+        std::memset(&outbox, 0, sizeof(outbox));
+        outbox.magic            = 0x6262;
+        outbox.box_info_size    = sizeof(CecBoxInfoHeader);
+        outbox.max_box_size     = kOutboxMaxBoxSize;
+        outbox.max_message_num  = kOutboxMaxMessages;
+        outbox.max_batch_size   = kOutboxMaxBatch;
+        outbox.max_message_size = kCecMaxMessageSize;
+        if (R_FAILED(rc = createFile(titleId, Path::OutboxInfo, kOpenFile, &outbox, sizeof(outbox)))) {
+            if (step) *step = 5;
+            return rc;
+        }
+
+        CecOBIndex index;
+        std::memset(&index, 0, sizeof(index));
+        index.magic = kOBIndexMagic;
+        if (R_FAILED(rc = createFile(titleId, Path::OutboxIndex, kOpenFile, &index, sizeof(index)))) {
+            if (step) *step = 6;
+            return rc;
+        }
+    }
+
+    // Step 7: box title (UTF-16LE) + 48x48 tiled RGB565 icon.
+    if (R_FAILED(rc = writeBoxNameAndIcon(titleId))) {
+        if (step) *step = 7;
+        return rc;
+    }
+
+    // Step 9: finally, add the box to the global MBoxList so the OS + NetPass see it.
+    if (R_FAILED(rc = ensureBoxInList(titleId))) { if (step) *step = 9; return rc; }
+
+    return 0;
 }
 
 // Write one message to a box the way the system expects (mirrors NetPass):
@@ -403,71 +744,44 @@ bool CecdTransport::init() {
     // Confirm the CEC daemon is responsive and record its state.
     cmdGetState(&cecState_);
 
-    // 1) Build the FULL message-box structure. cecd's Open(Create) makes a single
-    //    dir/file at a time (it does NOT create nested paths), so we build them in
-    //    order. This matters because WriteMessage opens a file *inside* OutBox__,
-    //    so that directory and its BoxInfo must already exist or the write fails
-    //    with 0xC8A10BF0 (CEC / InvalidState) - the exact bug we hit.
-    u32 sz = 0;
-
-    // /CEC/<id>/ then MBoxInfo (let cecd create it so it fills private_id/hmac).
-    cmdOpen(titleId_, Path::MboxDir, FlagCreate | FlagRead | FlagWrite, &sz);
-    Result rc = cmdOpen(titleId_, Path::MboxInfo, FlagRead, &sz);
+    // 1) Build the FULL message-box structure and register it, mirroring NetPass's
+    //    registerStreetpassApplication(): three dirs + MBoxInfo + InboxInfo +
+    //    OutboxInfo + OutBoxIndex + title + icon, all made with OpenRawFile+
+    //    WriteRawFile (NOT OpenAndWrite), then added to the global MBoxList so the
+    //    OS - and NetPass over the internet - actually scan and exchange it. This
+    //    early-outs if we're already registered, so a live box is never clobbered.
+    regStep_ = 0;
+    Result rc = registerBox(titleId_, &regStep_);
+    regRc_ = static_cast<u32>(rc);
     if (R_FAILED(rc)) {
-        rc = cmdOpen(titleId_, Path::MboxInfo,
-                     FlagCreate | FlagRead | FlagWrite, &sz);
-    }
-    boxReady_ = R_SUCCEEDED(rc);
-    if (R_FAILED(rc)) lastError_ = static_cast<u32>(rc);
-
-    // /CEC/<id>/InBox___/ and /CEC/<id>/OutBox__/ directories.
-    cmdOpen(titleId_, Path::InboxDir,  FlagCreate | FlagRead | FlagWrite, &sz);
-    cmdOpen(titleId_, Path::OutboxDir, FlagCreate | FlagRead | FlagWrite, &sz);
-
-    // Each box needs an empty BoxInfo header. Create them ONLY if missing, so we
-    // never clobber messages already waiting in an existing box.
-    CecBoxInfoHeader bi{};
-    bi.magic            = 0x6262;
-    bi.box_info_size    = sizeof(CecBoxInfoHeader);
-    bi.max_box_size     = 0x8000;
-    bi.max_message_num  = 8;
-    bi.max_batch_size   = 8;
-    bi.max_message_size = 0x1000;
-    if (R_FAILED(cmdOpen(titleId_, Path::OutboxInfo, FlagRead, &sz)))
-        cmdOpenAndWrite(titleId_, Path::OutboxInfo,
-                        FlagCreate | FlagWrite, &bi, sizeof(bi));
-    if (R_FAILED(cmdOpen(titleId_, Path::InboxInfo, FlagRead, &sz)))
-        cmdOpenAndWrite(titleId_, Path::InboxInfo,
-                        FlagCreate | FlagWrite, &bi, sizeof(bi));
-
-    // 2) Flag the box StreetPass-enabled so the system will scan/relay it.
-    if (boxReady_) ensureBoxEnabled(titleId_);
-
-    // 2b) Best-effort: give the box a title + icon so the StreetPass management
-    //     applet and NetPass treat it as a "real" box. The exact on-disk formats
-    //     are the least-documented part of CECD, so these are our best guess
-    //     (title = UTF-16LE string; icon = 48x48 RGB565 like an SMDH small icon).
-    //     The write Results are surfaced by selfTest() so we can iterate on HW.
-    //     Failures are harmless (bounded, non-fatal).
-    if (boxReady_) {
-        // Writable RAM (not .rodata) so the IPC buffer mapping is accepted.
-        u16 title[16] = { 'P','e','t','P','a','l', 0 }; // UTF-16LE, rest zero
-        titleRc_ = static_cast<u32>(
-            cmdOpenAndWrite(titleId_, Path::BoxTitle, FlagWrite,
-                            title, sizeof(title)));
-
-        static u16 icon[48 * 48];
-        for (int y = 0; y < 48; ++y)
-            for (int x = 0; x < 48; ++x)
-                icon[y * 48 + x] = ((x + y) & 8) ? 0xFD20 : 0x5B1F; // 2-tone
-        iconRc_ = static_cast<u32>(
-            cmdOpenAndWrite(titleId_, Path::BoxIcon, FlagWrite,
-                            icon, sizeof(icon)));
-        PP_LOG("box meta: title=%08lx icon=%08lx",
-               (unsigned long)titleRc_, (unsigned long)iconRc_);
+        lastError_ = regRc_;
+        PP_WARN("registerBox failed at step %d: %08lx", regStep_, (unsigned long)regRc_);
     }
 
-    // 3) Nudge the CEC daemon into its scan/exchange cycle. The system then swaps
+    // 2) Confirm the box really exists now by reading its MBoxInfo back. (When
+    //    registerBox early-outs as "already registered" this is what proves it.)
+    {
+        CecMBoxInfo probe;
+        u32 pg = 0;
+        Result pr = cmdOpenAndRead(titleId_, Path::MboxInfo, 0, &probe, sizeof(probe), &pg);
+        boxReady_ = R_SUCCEEDED(pr) && pg >= sizeof(probe) && probe.magic == kMBoxInfoMagic;
+        if (!boxReady_ && R_SUCCEEDED(rc)) lastError_ = static_cast<u32>(pr);
+    }
+
+    // 3) Keep the box provisioned: enabled, right type flag, and the shared HMAC
+    //    key (upgrades boxes made by older PetPal builds). Best-effort, bounded.
+    if (boxReady_) ensureBoxProvisioned(titleId_);
+
+    // 3a) Refresh the box title + icon every boot. registerBox early-outs on an
+    //     already-registered box, so this is what heals a box created by an older
+    //     build with the garbled (linear) icon. Cheap and bounded; leaves the
+    //     inbox/outbox message state untouched.
+    if (boxReady_) writeBoxNameAndIcon(titleId_);
+
+    // Record the master-list state for the status line (0 == our box is listed).
+    mboxListRc_ = (regStep_ == 9) ? regRc_ : 0;
+
+    // 4) Nudge the CEC daemon into its scan/exchange cycle. The system then swaps
     //    our box with people we pass (local StreetPass) or with the relay
     //    (NetPass) - identical box, identical code path. Some daemon states
     //    reject START (e.g. already running); treat that as "already scanning".
@@ -478,8 +792,9 @@ bool CecdTransport::init() {
                (unsigned long)sr, cecState_);
 
     available_ = true;
-    PP_LOG("CECD ready (box=%08lx state=%u boxReady=%d scan=%d)",
-           (unsigned long)titleId_, cecState_, (int)boxReady_, (int)scanning_);
+    PP_LOG("CECD ready (box=%08lx svc=%s state=%u boxReady=%d scan=%d regStep=%d reg=%08lx)",
+           (unsigned long)titleId_, g_cecdSvc, cecState_, (int)boxReady_,
+           (int)scanning_, regStep_, (unsigned long)regRc_);
     return true;
 }
 
@@ -569,84 +884,48 @@ StreetPassStatus CecdTransport::status() const {
     return s;
 }
 
-// On-device stage-by-stage diagnostic so we can see EXACTLY which cecd call fails
-// (rather than one opaque code). Runs: read MBoxInfo -> WriteMessageWithHMAC ->
-// ReadMessage back, reporting the first failing stage with its Result.
-std::string CecdTransport::selfTest() {
-    if (!available_) return "CECD: unavailable";
-    char buf[96];
+// -----------------------------------------------------------------------------
+//  DualTransport - CECD (real StreetPass + NetPass) alongside the HTTP relay
+// -----------------------------------------------------------------------------
+bool DualTransport::init() {
+    const bool ra = a_ && a_->init();
+    const bool rb = b_ && b_->init();
+    return ra || rb;   // usable if EITHER transport came up
+}
 
-    // Stage 1: find a readable MBoxInfo (magic 0x6363 + hmac key). Probe both the
-    // unique-id form and the low-title-id form so we can tell an id-derivation
-    // problem apart from "no valid box exists at all".
-    CecMBoxInfo mbox;
-    const u32 idA = titleId_;      // as configured (unique id 0x000F00D5)
-    const u32 idB = 0x0F00D500u;   // low title-id form
-    u32 gotA = 0, gotB = 0;
-    Result rcA = cmdOpenAndRead(idA, Path::MboxInfo, 0, &mbox, sizeof(mbox), &gotA);
-    const u16 magicA = mbox.magic;
-    Result rcB = cmdOpenAndRead(idB, Path::MboxInfo, 0, &mbox, sizeof(mbox), &gotB);
-    const u16 magicB = mbox.magic;
+void DualTransport::shutdown() {
+    if (a_) a_->shutdown();
+    if (b_) b_->shutdown();
+}
 
-    const bool okA = R_SUCCEEDED(rcA) && gotA >= sizeof(mbox) && magicA == kMBoxInfoMagic;
-    const bool okB = R_SUCCEEDED(rcB) && gotB >= sizeof(mbox) && magicB == kMBoxInfoMagic;
-    const u32 useId = okA ? idA : (okB ? idB : 0);
-    if (!useId) {
-        std::snprintf(buf, sizeof(buf),
-                      "S1 no box: A=%08lX/%04X B=%08lX/%04X",
-                      (unsigned long)rcA, (unsigned)magicA,
-                      (unsigned long)rcB, (unsigned)magicB);
-        return buf;
+bool DualTransport::setOutbox(const uint8_t* data, size_t len) {
+    bool ra = false, rb = false;
+    if (a_) ra = a_->setOutbox(data, len);
+    if (b_) rb = b_->setOutbox(data, len);
+    return ra || rb;
+}
+
+int DualTransport::drainInbox(std::vector<std::vector<uint8_t>>& out) {
+    int total = 0;                       // union of both inboxes (dedup is in poll())
+    if (a_) { const int n = a_->drainInbox(out); if (n > 0) total += n; }
+    if (b_) { const int n = b_->drainInbox(out); if (n > 0) total += n; }
+    return total;
+}
+
+bool DualTransport::isAvailable() const {
+    return (a_ && a_->isAvailable()) || (b_ && b_->isAvailable());
+}
+
+StreetPassStatus DualTransport::status() const {
+    // Surface the CECD box status (what the StreetPass screen shows), but report
+    // serviceUp if EITHER is live and sum the waiting counts.
+    StreetPassStatus s = a_ ? a_->status() : StreetPassStatus{};
+    if (b_) {
+        const StreetPassStatus sb = b_->status();
+        s.serviceUp    = s.serviceUp || sb.serviceUp;
+        s.inboxWaiting = s.inboxWaiting + sb.inboxWaiting;
     }
-    // Re-read the good box so `mbox` (hmac key) matches useId.
-    cmdOpenAndRead(useId, Path::MboxInfo, 0, &mbox, sizeof(mbox), &gotA);
-
-    // Stage 2: write a proper [CecMessageHeader | body] with HMAC.
-    u8 pat[48];
-    for (int i = 0; i < 48; ++i) pat[i] = static_cast<u8>(0xA0 ^ i);
-    u8 msgbuf[sizeof(CecMessageHeader) + 64];
-    std::memset(msgbuf, 0, sizeof(CecMessageHeader));
-    CecMessageHeader* h = reinterpret_cast<CecMessageHeader*>(msgbuf);
-    h->magic             = kMessageMagic;
-    h->message_size      = sizeof(CecMessageHeader) + sizeof(pat);
-    h->total_header_size = sizeof(CecMessageHeader);
-    h->body_size         = sizeof(pat);
-    h->title_id          = useId;
-    h->title_id2         = useId;
-    h->batch_id          = 1;
-    h->message_version   = 1;
-    std::memcpy(h->message_id,  kOutboxMsgId, 8);
-    std::memcpy(h->message_id2, kOutboxMsgId, 8);
-    h->unopened          = 1;
-    h->new_flag          = 1;
-    std::memcpy(msgbuf + sizeof(CecMessageHeader), pat, sizeof(pat));
-
-    Result wrc = cmdWriteMessageWithHMAC(useId, /*outbox=*/true, h->message_size,
-                                         msgbuf, kOutboxMsgId, mbox.hmac_key);
-    if (R_FAILED(wrc)) {
-        std::snprintf(buf, sizeof(buf), "S2 WHMAC=%08lX id=%08lX en=%u",
-                      (unsigned long)wrc, (unsigned long)useId, (unsigned)mbox.enabled);
-        return buf;
-    }
-
-    // Stage 3: read it back and compare the body.
-    u8 rmsg[sizeof(CecMessageHeader) + 64];
-    u32 got = 0;
-    Result rrc = cmdReadMessage(useId, /*outbox=*/true, kOutboxMsgId,
-                                rmsg, sizeof(rmsg), &got);
-    if (!outbox_.empty())
-        writeBoxMessage(useId, /*outbox=*/true, kOutboxMsgId,
-                        outbox_.data(), static_cast<u32>(outbox_.size()));
-    if (R_FAILED(rrc)) {
-        std::snprintf(buf, sizeof(buf), "S3 read=%08lX (write OK!)", (unsigned long)rrc);
-        return buf;
-    }
-
-    const bool ok = got >= sizeof(CecMessageHeader) + sizeof(pat) &&
-                    std::memcmp(rmsg + sizeof(CecMessageHeader), pat, sizeof(pat)) == 0;
-    std::snprintf(buf, sizeof(buf), "CECD I/O %s id=%08lX (rd %lu)",
-                  ok ? "OK" : "MISMATCH", (unsigned long)useId, (unsigned long)got);
-    return buf;
+    return s;
 }
 
 } // namespace petpal

@@ -1,0 +1,439 @@
+# =============================================================================
+#  PetPal — 3DS UI strings  ·  English (en)  ·  SOURCE LOCALE
+# =============================================================================
+#  This file lists every player-facing text string in the 3DS app so it can be
+#  translated into other languages. To make a translation, copy this file to
+#  "3DS_strings_<code>.lang" (e.g. 3DS_strings_FR.lang) and translate the values.
+#
+#  HOW TO TRANSLATE — please read:
+#   • Translate ONLY the text to the RIGHT of the first '=' on each line.
+#   • Do NOT change the KEY on the left of '=' — it is how the app finds the
+#     string and is the SAME in every language. Keys also tell you where the
+#     text appears (AREA.NAME) and where it comes from (see "# src:" notes).
+#   • Keep every {placeholder} EXACTLY as written — the app swaps in a name or
+#     number at runtime. You MAY move a {placeholder} to fit your grammar, but
+#     keep all of them and don't translate the word inside the braces.
+#     Each placeholder is explained in a "# ph:" note above the line.
+#   • Keep \n as a line break. Keep leading/trailing spaces you see.
+#   • Lines starting with '#' are notes for translators and are ignored by tools.
+#   • The 3DS font is limited; prefer plain Latin text and keep lines short —
+#     button hints fit ~8 chars, status lines ~40 chars on the top screen.
+#
+#  Not included here (intentionally): developer/diagnostic text (the CECD
+#  self-test line, debug "test pass" tools) and the profanity bl/filter list in
+#  source/util/NameFilter.cpp (that is a moderation word-list, not UI copy — a
+#  full localization would supply its own per-language list separately).
+# =============================================================================
+
+
+# ── App ──────────────────────────────────────────────────────────────────────
+APP.NAME = PetPal
+
+
+# ── Species · names ──────────────────────────────  # src: source/core/Names.cpp
+SPECIES.FOX     = Fox
+SPECIES.CAT     = Cat
+SPECIES.BUNNY   = Bunny
+SPECIES.DRAGON  = Dragon
+SPECIES.SLIME   = Slime
+SPECIES.ROBOT   = Robot
+SPECIES.AXOLOTL = Axolotl
+
+# ── Species · descriptions ───────────────────────  # src: source/core/Names.cpp
+SPECIES_DESC.FOX     = A clever little fox with a fluffy tail.
+SPECIES_DESC.CAT     = An independent cat who naps in sunbeams.
+SPECIES_DESC.BUNNY   = A gentle bunny with boundless curiosity.
+SPECIES_DESC.DRAGON  = A proud dragon hatchling chasing legends.
+SPECIES_DESC.SLIME   = A bouncy slime that wobbles with delight.
+SPECIES_DESC.ROBOT   = A tidy robot cataloguing the whole world.
+SPECIES_DESC.AXOLOTL = A smiley axolotl who loves cool water.
+
+# ── Species · personalities ──────────────────────  # src: source/core/Names.cpp
+SPECIES_PERSONALITY.FOX     = Curious, energetic, and loves exploring.
+SPECIES_PERSONALITY.CAT     = Calm, picky, and secretly affectionate.
+SPECIES_PERSONALITY.BUNNY   = Sweet, shy, and always making friends.
+SPECIES_PERSONALITY.DRAGON  = Brave, adventurous, and loves treasure.
+SPECIES_PERSONALITY.SLIME   = Playful, squishy, and endlessly cheerful.
+SPECIES_PERSONALITY.ROBOT   = Logical, collects gadgets, loves technology.
+SPECIES_PERSONALITY.AXOLOTL = Relaxed, friendly, and a little mischievous.
+
+
+# ── Colors ───────────────────────────────────────  # src: source/core/Names.cpp
+COLOR.RED    = Red
+COLOR.ORANGE = Orange
+COLOR.YELLOW = Yellow
+COLOR.GREEN  = Green
+COLOR.BLUE   = Blue
+COLOR.PURPLE = Purple
+COLOR.PINK   = Pink
+COLOR.BLACK  = Black
+COLOR.WHITE  = White
+COLOR.BROWN  = Brown
+
+
+# ── Accessories ──────────────────────────────────  # src: source/core/Names.cpp
+ACCESSORY.NONE       = None
+ACCESSORY.BOW        = Bow
+ACCESSORY.TOP_HAT    = Top Hat
+ACCESSORY.CROWN      = Crown
+ACCESSORY.SCARF      = Scarf
+ACCESSORY.GLASSES    = Glasses
+ACCESSORY.FLOWER     = Flower
+ACCESSORY.WIZARD_HAT = Wizard Hat
+ACCESSORY.CAPE       = Cape
+ACCESSORY.BACKPACK   = Backpack
+ACCESSORY.HEADPHONES = Headphones
+ACCESSORY.DOG_HAT    = Dog Hat
+
+
+# ── Styles ───────────────────────────────────────  # src: source/core/Names.cpp
+STYLE.CLASSIC     = Classic
+STYLE.FANTASY     = Fantasy
+STYLE.CYBER       = Cyber
+STYLE.ROYAL       = Royal
+STYLE.SPACE       = Space
+STYLE.PIRATE      = Pirate
+STYLE.RETRO_PIXEL = Retro Pixel
+STYLE.HALLOWEEN   = Halloween
+STYLE.WINTER      = Winter
+STYLE.SPRING      = Spring
+
+
+# ── Evolution stages ─────────────────────────────  # src: source/core/Names.cpp
+STAGE.BABY      = Baby
+STAGE.TEEN      = Teen
+STAGE.ADULT     = Adult
+STAGE.RARE      = Rare Form
+STAGE.LEGENDARY = Legendary Form
+
+
+# ── Friendship levels ────────────────────────────  # src: source/core/Names.cpp
+FRIENDSHIP.STRANGER     = Stranger
+FRIENDSHIP.ACQUAINTANCE = Acquaintance
+FRIENDSHIP.FRIEND       = Friend
+FRIENDSHIP.BEST_FRIEND  = Best Friend
+FRIENDSHIP.LEGENDARY    = Legendary Friend
+
+
+# ── Moods ────────────────────────────────────────  # src: source/core/Names.cpp
+MOOD.HAPPY   = Happy
+MOOD.CONTENT = Content
+MOOD.HUNGRY  = Hungry
+MOOD.TIRED   = Tired
+MOOD.SAD     = Sad
+
+
+# ── Adventure locations ──────────────────────────  # src: source/core/Names.cpp
+LOCATION.TOWN          = Town
+LOCATION.FOREST        = Forest
+LOCATION.BEACH         = Beach
+LOCATION.ARCADE        = Arcade
+LOCATION.CASTLE        = Castle
+LOCATION.SPACE_STATION = Space Station
+LOCATION.MOUNTAIN      = Mountain
+LOCATION.GARDEN        = Garden
+LOCATION.HAUNTED_MANOR = Haunted Manor
+LOCATION.CRYSTAL_CAVE  = Crystal Cave
+
+
+# ── Adventure durations ──────────────────────────  # src: source/core/Names.cpp
+DURATION.SHORT  = Short
+DURATION.MEDIUM = Medium
+DURATION.LONG   = Long
+
+
+# ── Items · names ────────────────────────────────  # src: source/core/Names.cpp
+ITEM.APPLE           = Apple
+ITEM.COOKIE          = Cookie
+ITEM.CAKE            = Cake
+ITEM.FISH            = Fish
+ITEM.BERRY           = Berry
+ITEM.CARROT          = Carrot
+ITEM.ICE_CREAM       = Ice Cream
+ITEM.RAINBOW_COOKIE  = Rainbow Cookie
+ITEM.GOLDEN_APPLE    = Golden Apple
+ITEM.COSMIC_CANDY    = Cosmic Candy
+ITEM.SHELL           = Shell
+ITEM.GEM             = Gem
+ITEM.FEATHER         = Feather
+ITEM.RELIC           = Relic
+ITEM.STICKER         = Sticker
+ITEM.COMMON_SHARD    = Common Shard
+ITEM.RARE_SHARD      = Rare Shard
+ITEM.LEGENDARY_SHARD = Legendary Shard
+
+# ── Items · descriptions ─────────────────────────  # src: source/core/Names.cpp
+ITEM_DESC.APPLE           = A crisp apple. A reliable snack.
+ITEM_DESC.COOKIE          = A sweet cookie everyone loves.
+ITEM_DESC.CAKE            = A fluffy slice of cake for special days.
+ITEM_DESC.FISH            = A fresh fish. Cats approve.
+ITEM_DESC.BERRY           = A juicy forest berry.
+ITEM_DESC.CARROT          = A crunchy garden carrot.
+ITEM_DESC.ICE_CREAM       = A cold treat for warm afternoons.
+ITEM_DESC.RAINBOW_COOKIE  = A shimmering cookie. Tastes like joy.
+ITEM_DESC.GOLDEN_APPLE    = A radiant apple of legend.
+ITEM_DESC.COSMIC_CANDY    = Candy from the stars. Very rare.
+ITEM_DESC.SHELL           = A pretty seashell from the beach.
+ITEM_DESC.GEM             = A glittering gemstone.
+ITEM_DESC.FEATHER         = A soft, iridescent feather.
+ITEM_DESC.RELIC           = An ancient relic full of mystery.
+ITEM_DESC.STICKER         = A collectible sticker for your journal.
+ITEM_DESC.COMMON_SHARD    = A common shard humming with energy.
+ITEM_DESC.RARE_SHARD      = A rare shard pulsing with light.
+ITEM_DESC.LEGENDARY_SHARD = A legendary shard of pure power.
+
+
+# ── Achievements · names ─────────────────────────  # src: source/core/Names.cpp
+ACHIEVEMENT.FIRST_FRIEND         = First Friend
+ACHIEVEMENT.TEN_FRIENDS          = 10 Friends
+ACHIEVEMENT.HUNDRED_FRIENDS      = 100 Friends
+ACHIEVEMENT.FIRST_EVOLUTION      = First Evolution
+ACHIEVEMENT.LEGENDARY_PET        = Legendary Pet
+ACHIEVEMENT.WORLD_TRAVELER       = World Traveler
+ACHIEVEMENT.ACCESSORY_COLLECTOR  = Accessory Collector
+ACHIEVEMENT.EXPLORER             = Explorer
+
+# ── Achievements · descriptions ──────────────────  # src: source/core/Names.cpp
+ACHIEVEMENT_DESC.FIRST_FRIEND        = Meet your very first pet.
+ACHIEVEMENT_DESC.TEN_FRIENDS         = Make 10 friends.
+ACHIEVEMENT_DESC.HUNDRED_FRIENDS     = Make 100 friends.
+ACHIEVEMENT_DESC.FIRST_EVOLUTION     = Evolve your pet for the first time.
+ACHIEVEMENT_DESC.LEGENDARY_PET       = Reach the Legendary evolution form.
+ACHIEVEMENT_DESC.WORLD_TRAVELER      = Unlock every location.
+ACHIEVEMENT_DESC.ACCESSORY_COLLECTOR = Unlock every accessory.
+ACHIEVEMENT_DESC.EXPLORER            = Complete 25 adventures.
+
+
+# ── Onboarding ───────────────────────  # src: source/ui/screens/OnboardingScreen.cpp
+ONBOARD.CHOOSE_TITLE = Choose your PetPal!
+ONBOARD.CHOOSE_HINT  = Pick a friend to begin
+ONBOARD.NAME_KBD     = Name your pet
+HINT.ONBOARD_CHOOSE  = Choose
+
+
+# ── Main menu ─────────────────────────  # src: source/ui/screens/MainMenuScreen.cpp
+MENU.PET       = Pet
+MENU.FRIENDS   = Friends
+MENU.ADVENTURE = Adventure
+MENU.JOURNAL   = Journal
+MENU.STYLE     = Style
+MENU.SHOP      = Shop
+MENU.AWARDS    = Awards
+MENU.SETTINGS  = Settings
+MENU.EXIT_HINT = START: exit
+MENU.NEWS_HINT = News
+
+
+# ── Pet screen ────────────────────────  # src: source/ui/screens/PetScreen.cpp
+PET.ACTION_FEED   = Feed
+PET.ACTION_PLAY   = Play
+PET.ACTION_REST   = Rest
+PET.ACTION_PET    = Pet
+PET.ACTION_TALK   = Talk
+PET.ACTION_EVOLVE = Evolve
+PET.CARE_HEADER   = Care for your pet
+PET.EVOLVED       = Your pet evolved!
+PET.NOT_READY     = Not ready to evolve yet.
+# ph: {level} = the pet's new level number
+PET.LEVEL_UP      = Level up! Now Lv.{level}
+# ph: {mood} = a MOOD.* value (Happy, Hungry, …)
+PET.FEELING       = Feeling {mood}
+# ph: {days} = number of days. Note: English adds "s" for plurals; use your
+#     language's own plural rule for the day count.
+PET.STREAK_ONE    = Streak: {days} day
+PET.STREAK_MANY   = Streak: {days} days
+HINT.PET_BACK     = Back
+HINT.PET_ARCADE   = Arcade
+
+# ── Pet care results (toasts) ─────────  # src: source/core/Game.cpp
+# ph: {name} = pet's name, {food} = an ITEM.* food name
+PET.FEED_OK   = Yum! {name} loves the {food}.
+PET.FEED_NONE = You don't have that food.
+PET.PLAY_OK   = What fun!
+PET.REST_OK   = Zzz... a restful nap.
+PET.PET_OK    = So cozy!
+PET.TALK_OK   = You had a nice chat.
+# ph: {score} = mini-game score, {coins} = coins earned
+PET.ARCADE_RESULT = Scored {score}! +{coins} coins
+
+
+# ── Friends / StreetPass ──────────────  # src: source/ui/screens/FriendsScreen.cpp
+# ph: {count} = passes received, {new} = new friends made
+FRIENDS.GOT_PASSES = Got {count} pass(es) - {new} new friend(s)!
+FRIENDS.NO_PASSES  = No new passes right now.
+# ph: {count} = number of friends
+FRIENDS.TITLE      = Friends  ({count})
+FRIENDS.EMPTY      = No friends yet!
+FRIENDS.EMPTY_HINT = StreetPass other players to meet pets.
+FRIENDS.CHECK_HINT = Press X to check for passes now.
+STREETPASS.UNAVAILABLE = StreetPass: unavailable
+STREETPASS.SETTING_UP  = StreetPass: setting up...
+# ph: {state} = STREETPASS.ON or STREETPASS.IDLE, {waiting} = messages waiting
+STREETPASS.STATUS  = StreetPass: {state}  -  {waiting} waiting
+STREETPASS.ON      = on
+STREETPASS.IDLE    = idle
+# ph: {species}=SPECIES.*, {level}=number, {stage}=STAGE.*
+FRIENDS.INFO_LINE  = {species}  -  Lv.{level}  -  {stage}
+# ph: {friendship}=FRIENDSHIP.*, {count}=times met
+FRIENDS.MET_LINE   = {friendship}  -  Met {count} time(s)
+# ph: {date} = the date first met
+FRIENDS.FIRST_MET  = First met: {date}
+HINT.FRIENDS_BACK  = Back
+HINT.FRIENDS_CHECK = Check
+
+
+# ── Adventures ────────────────────────  # src: source/ui/screens/AdventuresScreen.cpp
+ADVENTURE.TITLE        = Adventures
+ADVENTURE.SEND_BTN     = Send!
+ADVENTURE.COLLECT_BTN  = Collect!
+ADVENTURE.DEPARTED     = Off they go on an adventure!
+ADVENTURE.TOO_TIRED    = Too tired - feed your pet first!
+ADVENTURE.BACK_READY   = They're back! Tap Collect.
+# ph: {reward}=coins from Game "Got {coins} coins + {items} item(s)!"
+# ph: {coins}=coins earned, {items}=number of items found
+ADVENTURE.REWARD       = Got {coins} coins + {items} item(s)!
+# ph: {mins}=minutes, {secs}=seconds (2 digits). Time remaining, e.g. "Back in 2:05"
+ADVENTURE.BACK_IN      = Back in {mins}:{secs}
+# ph: {place} = a LOCATION.* value
+ADVENTURE.WHERE_TO     = Where to? {place}
+# ph: {duration} = a DURATION.* value
+ADVENTURE.DURATION     = Duration: {duration}
+ADVENTURE.CONTROLS     = Up/Down: place   Left/Right: time
+ADVENTURE.UNLOCKED     = Unlocked places:
+HINT.ADVENTURE_BACK    = Back
+
+
+# ── Journal ───────────────────────────  # src: source/ui/screens/JournalScreen.cpp
+JOURNAL.TITLE      = Pet Journal
+JOURNAL.EMPTY      = The story starts soon...
+JOURNAL.SCROLL     = Up / Down to scroll
+# ph: {n} = current entry number, {total} = total entries
+JOURNAL.ENTRY_OF   = Entry {n} of {total}
+HINT.JOURNAL_BACK  = Back
+
+# ── Journal entries (auto-written) ────  # src: source/journal/Journal.cpp, source/core/Game.cpp
+JOURNAL.FIRST_ENTRY = My adventure begins today! I can't wait to make friends.
+# ph: {name}=met pet's name, {species}=SPECIES.*  (one of three is picked at random)
+JOURNAL.MET_1 = Today I met {name} the {species}. So exciting!
+JOURNAL.MET_2 = I made a new friend: a {species} named... well, {name}!
+JOURNAL.MET_3 = {name} the {species} waved hello. I waved back!
+# ph: {place} = a LOCATION.* value
+JOURNAL.EXPLORED = I explored the {place}.
+# ph: {item} = an ITEM.* value
+JOURNAL.FOUND = I found a {item}!
+# ph: {stage} = a STAGE.* value
+JOURNAL.EVOLVED = I evolved into a {stage}! I feel different...
+# ph: {achievement} = an ACHIEVEMENT.* name
+JOURNAL.ACHIEVEMENT = Achievement unlocked: {achievement}!
+
+
+# ── Style / Dress Up ──────────────────  # src: source/ui/screens/CustomizationScreen.cpp
+STYLE_SCREEN.TITLE     = Dress Up
+STYLE_SCREEN.CAT_COLOR1    = Color 1
+STYLE_SCREEN.CAT_COLOR2    = Color 2
+STYLE_SCREEN.CAT_ACCESSORY = Accessory
+STYLE_SCREEN.CAT_STYLE     = Style
+STYLE_SCREEN.LOCKED    = LOCK
+HINT.STYLE_CATEGORY    = Category
+HINT.STYLE_APPLY       = Apply
+HINT.STYLE_BACK        = Back
+
+
+# ── Shop ──────────────────────────────  # src: source/ui/screens/ShopScreen.cpp
+SHOP.TITLE       = Shop
+# ph: {item} = an ITEM.* name
+SHOP.BOUGHT      = Bought {item}!
+SHOP.NO_COINS    = Not enough coins!
+# ph: {price} = coin price, {owned} = quantity owned
+SHOP.PRICE_OWNED = Price {price}     Owned {owned}
+HINT.SHOP_BUY    = Buy
+HINT.SHOP_BACK   = Back
+
+
+# ── Awards / Achievements screen ──────  # src: source/ui/screens/AchievementsScreen.cpp
+# ph: {got} = number unlocked, {total} = total achievements
+AWARDS.COUNT       = Awards  {got} / {total}
+# ph: {kind}=AWARDS.KIND_ACCESSORY or AWARDS.KIND_STYLE, {name}=the reward's name
+AWARDS.REWARD      = Reward: {kind} {name}
+AWARDS.KIND_ACCESSORY = Accessory
+AWARDS.KIND_STYLE     = Style
+AWARDS.UNLOCKED    = UNLOCKED!
+AWARDS.LOCKED_HINT = Keep playing to earn this.
+HINT.AWARDS_BACK   = Back
+
+
+# ── Settings ──────────────────────────  # src: source/ui/screens/SettingsScreen.cpp
+SETTINGS.TITLE          = Settings
+SETTINGS.REDEEMED       = Redeemed!
+SETTINGS.CODE_REJECTED  = Code not accepted.
+SETTINGS.CODE_KBD       = Enter a code
+SETTINGS.LINK_KBD       = Phone Link ID: PP-XXXX-XXXX
+SETTINGS.LINKED_OK      = Linked to phone!
+SETTINGS.LINK_FAILED    = Link failed - check the ID.
+SETTINGS.BACKUP_SAVED   = Backup saved!
+SETTINGS.CHECKING_CODE  = Checking code...
+# ph: {mins} = total play time in minutes
+SETTINGS.PLAY_TIME      = Play time: {mins} min
+# ph: {date} = last-saved date/time
+SETTINGS.LAST_SAVED     = Last saved: {date}
+# ph: {id} = the Pet ID (PP-XXXX-XXXX) or SETTINGS.OFFLINE when not signed in
+SETTINGS.PET_ID         = Pet ID: {id}
+SETTINGS.OFFLINE        = (offline)
+# ph: {major}.{minor}.{patch} = version numbers, e.g. "PetPal v0.1.6"
+SETTINGS.VERSION        = PetPal v{major}.{minor}.{patch}
+# rows (labels)
+SETTINGS.ROW_MUSIC      = Music
+SETTINGS.ROW_SFX        = Sound FX
+SETTINGS.ROW_AUTOSAVE   = Auto-save
+SETTINGS.ROW_RUMBLE     = Rumble
+SETTINGS.ROW_ENTER_CODE = Enter code
+SETTINGS.ROW_LINK_PHONE = Link to phone
+SETTINGS.ROW_EXPORT     = Export backup
+# row values
+SETTINGS.VAL_ON      = On
+SETTINGS.VAL_OFF     = Off
+SETTINGS.VAL_PRESS_A = Press A
+SETTINGS.VAL_LINKED  = Linked
+# ph: {pct} = a volume percentage, e.g. "80%"
+SETTINGS.VAL_PERCENT = {pct}%
+HINT.SETTINGS_BACK   = Back
+
+
+# ── Announcements / News ──────────────  # src: source/ui/screens/AnnouncementsScreen.cpp
+NEWS.TITLE          = News
+# ph: {count} = number of announcements
+NEWS.TITLE_COUNT    = News  ({count})
+NEWS.LOADING        = Loading news...
+NEWS.LOAD_FAILED    = Couldn't load news. Try again later.
+NEWS.SERVER_FAIL    = Couldn't reach the server.
+NEWS.SERVER_HINT    = Check your connection and reopen News.
+NEWS.EMPTY          = No announcements yet.
+NEWS.EMPTY_HINT     = Check back soon!
+# top-screen scroll affordances (L/R shoulder buttons)
+NEWS.SCROLL_UP      = L up
+NEWS.SCROLL_MORE    = R more
+HINT.NEWS_BACK      = Back
+HINT.NEWS_SCROLL    = Scroll
+
+
+# ── Banned screen (401) ───────────────  # src: source/ui/UIManager.cpp
+# ph: {id} = the player's Pet ID
+BANNED.PET_ID_LINE  = Pet ID: {id}
+BANNED.MESSAGE      = This pet has been banned.
+BANNED.CONTACT      = Contact support with your Pet ID.
+BANNED.EXIT         = Press START to exit.
+
+
+# ── Mini-game: Star Tap ───────────────  # src: source/ui/UIManager.cpp
+MINIGAME.TITLE     = Star Tap
+# ph: {score} = current score
+MINIGAME.SCORE     = Score: {score}
+# ph: {secs} = seconds left
+MINIGAME.TIME      = Time: {secs}s
+MINIGAME.TAP_HINT  = Tap the gold dot below!
+MINIGAME.QUIT      = START: quit
+
+
+# ── Update prompt ─────────────────────  # src: source/core/Game.cpp
+UPDATE.REQUIRED = Please update your app.
+UPDATE.CLOSE    = Press START to close.

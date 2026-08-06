@@ -63,10 +63,14 @@ Game::Game(std::string baseDir)
     : baseDir_(std::move(baseDir)),
       save_(baseDir_),
 #ifdef __3DS__
-      // Internet relay (our own StreetPass over teampetpal.com). Homebrew can't
-      // create a real CEC box, so CecdTransport is a dead end; HttpPassTransport
-      // delivers the same "meet other pets" pipeline over the net instead.
-      netpass_(std::make_unique<HttpPassTransport>()),
+      // Pass over BOTH channels: CecdTransport registers a real CEC message box
+      // (local StreetPass, and NetPass relays that same box over the internet),
+      // while HttpPassTransport keeps our own teampetpal.com relay working. The
+      // CEC box only becomes visible to the system once it's added to
+      // /CEC/MBoxList____ (see CecdTransport::ensureBoxInList).
+      netpass_(std::make_unique<DualTransport>(
+                   std::make_unique<CecdTransport>(0),
+                   std::make_unique<HttpPassTransport>())),
 #else
       netpass_(nullptr),                            // LoopbackTransport in tests
 #endif

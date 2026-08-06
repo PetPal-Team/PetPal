@@ -36,6 +36,10 @@ void AchievementsScreen::drawTop() {
 
     const AchievementId id = static_cast<AchievementId>(cursor_);
     const bool got = ach.isUnlocked(id);
+
+    // A gold star (or a gray one when still locked) crowns the selected award.
+    ui_->drawDeco(got ? Deco::StarFull : Deco::StarEmpty, kTopWidth * 0.5f, 56.0f, 22.0f);
+
     draw::card(40, 70, kTopWidth - 80, 120, 14, toC2D(kBgPanel), toC2D(kButtonShadow));
     draw::textCentered(font, buf, achievementName(id), kTopWidth * 0.5f, 92, 0.6f,
                        toC2D(got ? kSuccess : kTextMuted));
@@ -65,8 +69,8 @@ void AchievementsScreen::drawBottom() {
         const bool sel = (i == cursor_);
         draw::card(6, y, kBottomWidth - 12, rowH - 2, 8,
                    toC2D(sel ? kButtonPressed : kButtonFill), toC2D(kButtonShadow));
-        C2D_DrawCircleSolid(20, y + (rowH - 2) * 0.5f, 0.0f, 6.0f,
-                            toC2D(got ? kSuccess : kBarBack));
+        ui_->drawDeco(got ? Deco::StarFull : Deco::StarEmpty,
+                      20.0f, y + (rowH - 2) * 0.5f, 16.0f);
         draw::textLeft(font, buf, achievementName(id), 34, y + 5, 0.42f,
                        toC2D(got ? kText : kTextMuted));
     }

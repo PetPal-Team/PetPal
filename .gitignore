@@ -27,7 +27,7 @@ BOT_exclude/
 # Admin panel (kept out of the game repo - moderator tooling / KV ids)
 ADMIN_exclude/
 
-# Android app (kept out of the game repo)
+# Android app (kept out of the game repo - will have its own repo soon)
 Android_EXCLUDE/
 
 # Catch-all: any folder whose name ends in _EXCLUDE / _exclude

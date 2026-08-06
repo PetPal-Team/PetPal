@@ -54,15 +54,22 @@ portable exports under `backups/`). It's created automatically on first run.
 
 ---
 
-## 🌐 Passing over the internet (PetPal's own "StreetPass")
+## 🌐 Passing: internet relay + real StreetPass (in the works)
 
-Real 3DS StreetPass runs on the system's CECD service, which a homebrew title
-can't register a message box with (a confirmed dead end — see
-[docs/NETPASS_INTEGRATION.md](docs/NETPASS_INTEGRATION.md)). Instead, PetPal runs
-its **own relay**: a background thread uploads a tiny packet describing your pet
-to `teampetpal.com/api/pass` and downloads other players', and the same meeting
-pipeline (friends, journal, gifts, celebrations) turns them into friends. No CECD,
-no NetPass app, no second console required — just an internet connection.
+PetPal's everyday passing runs over its **own internet relay**: a background thread
+uploads a tiny packet describing your pet to `teampetpal.com/api/pass` and downloads
+other players', and the meeting pipeline (friends, journal, gifts, celebrations)
+turns them into friends. No second console required — just an internet connection.
+
+**Real 3DS StreetPass now works too.** PetPal registers its own CEC message box via
+the system's CECD service — confirmed on hardware: the box is enabled and shows in
+*System Settings → Data Management → StreetPass Management* and in community CEC
+tools (title id `0F00D500`). Full console-to-console exchange is **in the works**;
+the internet relay stays the reliable path meanwhile. Real StreetPass requires the
+installed **`.cia`** (the system only grants a title its StreetPass box when it's
+installed to the HOME Menu, which is also where `cecd:s` is granted). Both transports
+run together on device via `DualTransport`. See
+[docs/NETPASS_INTEGRATION.md](docs/NETPASS_INTEGRATION.md).
 
 The packet is a fixed 49-byte `PetPalPacket` (magic + version + pet snapshot +
 CRC). The server is a tiny Cloudflare Pages Function backed by Workers KV; it just
@@ -158,25 +165,18 @@ PetPal/
 |-----|----------------|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Class responsibilities, ownership, data flow, the frame loop |
 | [SAVE_FORMAT.md](docs/SAVE_FORMAT.md) | On-disk byte layout, versioning, backup strategy |
-| [NETPASS_INTEGRATION.md](docs/NETPASS_INTEGRATION.md) | Packet format, the CECD dead end, the internet relay |
+| [NETPASS_INTEGRATION.md](docs/NETPASS_INTEGRATION.md) | Packet format, the CECD StreetPass box (working on hardware), the internet relay |
 | [UI_SYSTEM.md](docs/UI_SYSTEM.md) | Screen stack, widgets, animation engine, rendering |
 | [ROADMAP.md](docs/ROADMAP.md) | Implementation phases and future features |
 
 ## 🚧 Status
-<<<<<<< HEAD
-Current release: **v0.1.6** (`kAppVersion` in `include/core/Types.h`; save format
+Current release: **v0.1.7** (`kAppVersion` in `include/core/Types.h`; save format
 **v4**). The full core loop, care/mood/streak system, internet passes, phone
 linking + pet continuity, minigame, and profile badges are implemented and the
 model layer is covered by host tests. Known rough edges / planned: an in-app food
 picker on the 3DS (feeding auto-picks today; the Android app has a picker), an
 evolution cutscene, and rendering the remaining accessories/styles. Contributions
 and bug reports welcome.
-=======
-Fourth public release (**v0.1.3-1**). The full core loop is implemented and verified
-on real hardware. Feeding, Growing, and Evolving is fully implemented.
-Lots of more stuff coming!!! 
-Contributions and bug reports welcome.
->>>>>>> 737db1ab1ecc2134a29392ee2ee1d521fbfeae27
 
 ## 📄 License & credits
 Released under the [MIT License](LICENSE). Homebrew and non-commercial in spirit —

@@ -28,11 +28,15 @@ Status legend: ✅ done in this starter · 🔨 partial / stubbed · ⬜ planned
 * ✅ `PetPalPacket` wire format + CRC validation.
 * ✅ `NetPassManager` build/validate/poll + meeting pipeline in `Game`.
 * ✅ `LoopbackTransport` for offline testing.
-* ✅ `CecdTransport` (device): real `cecd:u` IPC client (Open/ReadMessage/
-  WriteMessage/Delete/OpenAndRead/GetCecdState), box provisioning, inbox
-  enumeration. Compiles ABI-correct.
-* 🔨 On-device CEC box *exchange* verification (needs a second console or
-  NetPass); box provisioning may need iteration on real hardware.
+* ✅ `CecdTransport` (device): real `cecd:s` IPC client (OpenRawFile/WriteRawFile/
+  ReadMessage/WriteMessageWithHMAC/Delete/OpenAndRead/GetCecdState), full box
+  registration + inbox enumeration. Runs alongside the relay via `DualTransport`.
+* ✅ **Real CEC StreetPass box registration — working on hardware.** The box is
+  created, enabled, given a title/icon + shared HMAC key, and added to the global
+  `MBoxList`; it appears in *System Settings → StreetPass Management* and cectool
+  (title id `0F00D500`). Requires the installed `.cia` (for `cecd:s`).
+* 🔨 On-device CEC box *exchange* verification (needs a second console or NetPass)
+  — the last piece of end-to-end local StreetPass.
 
 ## Phase 4 — UI ✅ / 🔨
 * ✅ `UIManager` frame loop, screen stack, navigation, background.
@@ -100,8 +104,10 @@ them with minimal churn:
   transport behind `INetPassTransport`-style abstraction.
 
 ## Known gaps / TODO markers in code
-* `CecdTransport` is retired — real CEC boxes are a homebrew dead end; the active
-  transport is the internet relay `HttpPassTransport` (see NETPASS_INTEGRATION.md).
+* `CecdTransport` registers a real CEC StreetPass box (working on hardware; runs
+  with the relay via `DualTransport`). Console-to-console *exchange* is still being
+  verified; the internet relay `HttpPassTransport` remains the reliable path (see
+  NETPASS_INTEGRATION.md).
 * `celebrate()` plays audio but does not yet spawn particles.
 * Slide transition value is computed but not applied to screen draw offsets.
 * Several accessories/styles render as no-ops in `PetRenderer` until art lands.

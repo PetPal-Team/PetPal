@@ -117,6 +117,12 @@ std::vector<ReceivedPet> NetPassManager::poll(uint64_t ownPetId) {
         PetPalPacket pkt;
         if (!validate(msg.data(), msg.size(), pkt)) continue;
         if (pkt.petId == ownPetId) continue; // ignore our own echo
+        // De-dup within a batch: the same pet can arrive over both the CEC box and
+        // the internet relay (DualTransport), so meet each sender only once.
+        bool seen = false;
+        for (const auto& r : result)
+            if (r.packet.petId == pkt.petId) { seen = true; break; }
+        if (seen) continue;
         result.push_back(ReceivedPet{ pkt, now });
     }
     PP_LOG("netpass poll: %d raw, %d valid", n, (int)result.size());

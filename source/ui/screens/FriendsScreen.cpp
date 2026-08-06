@@ -41,14 +41,6 @@ void FriendsScreen::update(float dt, const Input& in) {
         return;
     }
 
-    // Y = CECD self-test (writes+reads our own box to prove the I/O path on HW).
-    if (in.pressed(KEY_Y)) {
-        std::snprintf(flashMsg_, sizeof(flashMsg_), "%s",
-                      game_->netpass().selfTest().c_str());
-        flash_ = 5.0f;
-        return;
-    }
-
 #if PETPAL_DEBUG
     // SELECT = inject a synthetic pass through the real meeting pipeline.
     if (in.pressed(KEY_SELECT)) {
@@ -85,22 +77,23 @@ void FriendsScreen::drawTop() {
     // inbox over the internet.
     {
         const StreetPassStatus sp = game_->netpass().streetpassStatus();
-        char st[72];
+        char st[128];
         u32 col = toC2D(kTextMuted);
+        float scale = 0.42f;
         if (flash_ > 0.0f) {
             std::snprintf(st, sizeof(st), "%s", flashMsg_);
             col = toC2D(kPrimaryDk);
+            scale = 0.36f;   // manual-check result; shrink a touch to fit one line
         } else if (!sp.serviceUp) {
             std::snprintf(st, sizeof(st), "StreetPass: unavailable");
         } else if (!sp.boxReady) {
-            std::snprintf(st, sizeof(st), "StreetPass: box error (%08lX)",
-                          (unsigned long)sp.lastError);
+            std::snprintf(st, sizeof(st), "StreetPass: setting up...");
         } else {
             std::snprintf(st, sizeof(st), "StreetPass: %s  -  %d waiting",
                           sp.scanning ? "on" : "idle", sp.inboxWaiting);
             col = toC2D(kPrimaryDk);
         }
-        draw::textCentered(font, buf, st, kTopWidth * 0.5f, 232, 0.42f, col);
+        draw::textCentered(font, buf, st, kTopWidth * 0.5f, 232, scale, col);
     }
 
     if (fl.empty()) {
@@ -115,18 +108,23 @@ void FriendsScreen::drawTop() {
     const Friend& f = fl.at(selected_);
     petrender::drawPortrait(f.species(), f.primaryColor(), PetColor::White,
                             kTopWidth * 0.5f, 110.0f, 80.0f);
-    draw::textCentered(font, buf, f.name(), kTopWidth * 0.5f, 160, 0.6f, toC2D(kPrimaryDk));
+    draw::textCentered(font, buf, f.name(), kTopWidth * 0.5f, 158, 0.6f, toC2D(kPrimaryDk));
     std::snprintf(line, sizeof(line), "%s  -  Lv.%u  -  %s",
                   speciesName(f.species()), f.level(), evolutionStageName(f.stage()));
-    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 182, 0.45f, toC2D(kTextMuted));
-    std::snprintf(line, sizeof(line), "%s  -  Met %lu time(s)",
-                  friendshipLevelName(f.friendshipLevel()), (unsigned long)f.meetings());
-    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 202, 0.45f, toC2D(kText));
+    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 178, 0.45f, toC2D(kTextMuted));
+
+    // Friendship tier shown as a 5-star rating (Stranger = 1 star ... Legendary = 5),
+    // with the tier name beneath it.
+    const int filledStars = static_cast<int>(f.friendshipLevel()) + 1;
+    ui_->drawStars(filledStars, kFriendshipLevelCount, kTopWidth * 0.5f, 199.0f, 15.0f);
+    draw::textCentered(font, buf, friendshipLevelName(f.friendshipLevel()),
+                       kTopWidth * 0.5f, 213, 0.42f, toC2D(kText));
 
     char date[16];
     formatDate(f.dateMet(), date, sizeof(date));
-    std::snprintf(line, sizeof(line), "First met: %s", date);
-    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 222, 0.4f, toC2D(kTextMuted));
+    std::snprintf(line, sizeof(line), "Met %lu time(s)  -  First met %s",
+                  (unsigned long)f.meetings(), date);
+    draw::textCentered(font, buf, line, kTopWidth * 0.5f, 228, 0.4f, toC2D(kTextMuted));
 }
 
 void FriendsScreen::drawBottom() {
@@ -151,8 +149,7 @@ void FriendsScreen::drawBottom() {
                        48, y + 22, 0.38f, toC2D(kTextMuted));
     }
     float hx = ui_->drawHint(Btn::B, "Back", 8, 222);
-    hx = ui_->drawHint(Btn::X, "Check", hx + 16, 222);
-    ui_->drawHint(Btn::Y, "Test", hx + 16, 222);
+    ui_->drawHint(Btn::X, "Check", hx + 16, 222);
 }
 
 } // namespace petpal

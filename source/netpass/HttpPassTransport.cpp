@@ -212,19 +212,6 @@ StreetPassStatus HttpPassTransport::status() const {
     return s;
 }
 
-std::string HttpPassTransport::selfTest() {
-    const bool ok = exchangeOnce(/*upload=*/true);
-    char b[96];
-    if (!ok)
-        std::snprintf(b, sizeof(b), "Pass FAIL (code %lu)", lastError_.load());
-    else if (lastBatch_.load() > 0)
-        std::snprintf(b, sizeof(b), "Pass OK: got %d this check (total %d)",
-                      lastBatch_.load(), recvTotal_.load());
-    else
-        std::snprintf(b, sizeof(b), "Connected - no new passes yet");
-    return b;
-}
-
 } // namespace petpal
 
 #endif // __3DS__

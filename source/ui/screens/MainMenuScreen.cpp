@@ -69,6 +69,13 @@ void MainMenuScreen::update(float dt, const Input& in) {
     if (in.pressed(KEY_UP)   && focus_ >= 4) focus_ -= 4; // rise into row 1
     if (focus_ != prevFocus) audio::playSfx(audio::Sfx::Navigate);
 
+    // Y (or tapping the bottom hint) opens the dev-team News page.
+    if (in.pressed(KEY_Y) || in.tappedRect(6, 218, 104, 22)) {
+        audio::playSfx(audio::Sfx::Select);
+        ui_->navigateTo(ScreenId::Announcements);
+        return;
+    }
+
     // Decay press bounces.
     for (int i = 0; i < kCount; ++i)
         if (press_[i] > 0.0f) { press_[i] -= dt * 4.0f; if (press_[i] < 0) press_[i] = 0; }
@@ -112,9 +119,9 @@ void MainMenuScreen::drawTop() {
 
     // Stat bars bottom-left with icons.
     ui_->drawIcon(Icon::Happy,  18, 206, 18, toC2D(kBarHappy));
-    draw::bar(32, 200, 150, 12, pet.happiness() / 100.0f, toC2D(kBarBack), toC2D(kBarHappy));
+    ui_->drawBar(32, 200, 150, 12, pet.happiness() / 100.0f, Deco::BarPink);
     ui_->drawIcon(Icon::Energy, 18, 224, 18, toC2D(kBarEnergy));
-    draw::bar(32, 218, 150, 12, pet.energy() / 100.0f, toC2D(kBarBack), toC2D(kBarEnergy));
+    ui_->drawBar(32, 218, 150, 12, pet.energy() / 100.0f, Deco::BarYellow);
 }
 
 void MainMenuScreen::drawBottom() {
@@ -149,8 +156,9 @@ void MainMenuScreen::drawBottom() {
                            sel ? 0.44f : 0.40f, toC2D(sel ? kText : kTextMuted));
     }
 
-    draw::textCentered(font, buf, "START: exit", kBottomWidth * 0.5f, 228, 0.40f,
-                       toC2D(kTextMuted));
+    ui_->drawHint(Btn::Y, "News", 10, 224);
+    draw::textLeft(font, buf, "START: exit", kBottomWidth - 92, 226, 0.40f,
+                   toC2D(kTextMuted));
 }
 
 } // namespace petpal

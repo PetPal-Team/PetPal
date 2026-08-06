@@ -140,13 +140,19 @@ AccessControlInfo:
     WaitSynchronization1: 36
     WaitSynchronizationN: 37
 
-  # Service List (max 34). cecd:u is required for StreetPass/NetPass.
+  # Service List (max 34). cecd:s is the SYSTEM CEC service (used by NetPass): it
+  # lets PetPal create + own its StreetPass message box (cecd:u only permits the
+  # caller's own title id, so box creation there fails with 0xC8A10BF0). Both are
+  # listed; the code prefers cecd:s and falls back to cecd:u. NOTE: this access is
+  # only granted to the INSTALLED CIA - a .3dsx under the Homebrew Launcher can't
+  # get cecd:s, so real StreetPass requires running the CIA build.
   ServiceAccessControl:
    - APT:U
    - ac:u
    - am:net
    - boss:U
    - cam:u
+   - cecd:s
    - cecd:u
    - cfg:nor
    - cfg:u

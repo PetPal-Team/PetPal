@@ -24,6 +24,7 @@ enum class ScreenId : uint8_t {
     Achievements,
     Shop,
     Settings,
+    Announcements,  // dev-team News page (Markdown)
     Count
 };
 

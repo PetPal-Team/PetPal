@@ -59,6 +59,20 @@ public:
     void drawIcon(Icon id, float cx, float cy, float size, u32 tint);
     bool hasIcons() const { return sprites_ != nullptr; }
 
+    // Draw a full-color decorative sprite (e.g. a star) centered at (cx,cy) at
+    // `size` px, UNTINTED (preserves the artwork's own colors). No-op if missing.
+    void drawDeco(Deco d, float cx, float cy, float size);
+
+    // Draw a row of `count` star pips (`filled` of them gold, the rest gray)
+    // centered on (cx,cy). Used for friendship tiers and award progress. Returns
+    // the total width drawn so callers can lay out around it.
+    float drawStars(int filled, int count, float cx, float cy, float size);
+
+    // Draw a pixel stat bar: an empty track stretched to (w,h) with the colored
+    // `fill` sprite over the left `t` (0..1) fraction. Falls back to the vector
+    // draw::bar (using a matching theme color) if the atlas is unavailable.
+    void drawBar(float x, float y, float w, float h, float t, Deco fill);
+
     // Draw a consistent section header (accent pill + icon + title) centered at
     // the top of the *top* screen. `accentRGBA` is 0xRRGGBBAA. Call from drawTop.
     void drawTitleBar(Icon icon, const char* title, uint32_t accentRGBA);

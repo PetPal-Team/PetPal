@@ -1,0 +1,418 @@
+# =============================================================================
+#  PetPal — Texte de l'interface Android  ·  Français (fr)  ·  SOURCE LOCALE
+# =============================================================================
+#                      French translation by @AtexBg
+# =============================================================================
+
+
+# ── App ──────────────────────────  # src: res/values/strings.xml
+APP.NAME = PetPal
+QR.PRIVACY_NOTICE = La caméra est utilisée uniquement par PetPal, aucune info n'est partagée.
+
+
+# ── Species · names ───────────────  # src: model/Models.kt (Species)
+SPECIES.FOX     = Renard
+SPECIES.CAT     = Chat
+SPECIES.BUNNY   = Lapin
+SPECIES.DRAGON  = Dragon
+SPECIES.SLIME   = Slime
+SPECIES.ROBOT   = Robot
+SPECIES.AXOLOTL = Axolotl
+
+# ── Species · descriptions ────────  # src: model/Models.kt (Species)
+SPECIES_DESC.FOX     = Un petit renard à la queue toufue.
+SPECIES_DESC.CAT     = Un chat indépendant adorant se reposer.
+SPECIES_DESC.BUNNY   = Un lapin plein de curiosité.
+SPECIES_DESC.DRAGON  = Un dragon fier et légendaire.
+SPECIES_DESC.SLIME   = Un slime rebondissant et amusant.
+SPECIES_DESC.ROBOT   = Un robot cartographiant le monde.
+SPECIES_DESC.AXOLOTL = Un axolotl souriant qui adore l'eau fraîche.
+
+
+# ── Evolution stages ──────────────  # src: model/Models.kt (EvolutionStage)
+STAGE.BABY      = Bébé
+STAGE.TEEN      = Jeune
+STAGE.ADULT     = Adulte
+STAGE.RARE      = Forme Rare
+STAGE.LEGENDARY = Forme Légendaire
+# fallback when a stage index is unknown
+STAGE.UNKNOWN   = Inconnu
+
+
+# ── Moods ─────────────────────────  # src: model/Models.kt (Mood)
+MOOD.HAPPY   = Joyeux
+MOOD.CONTENT = Content
+MOOD.HUNGRY  = Affamé
+MOOD.TIRED   = Fatigué
+MOOD.SAD     = Triste
+
+
+# ── Friendship levels ─────────────  # src: model/Models.kt (FriendshipLevel)
+FRIENDSHIP.STRANGER     = Inconnu(e)
+FRIENDSHIP.ACQUAINTANCE = Connaissance
+FRIENDSHIP.FRIEND       = Ami
+FRIENDSHIP.BEST_FRIEND  = Meilleur ami
+FRIENDSHIP.LEGENDARY    = Ami légendaire
+
+
+# ── Adventure locations · names ───  # src: model/Models.kt (Location)
+LOCATION.TOWN          = Ville
+LOCATION.FOREST        = Forêt
+LOCATION.BEACH         = Plage
+LOCATION.ARCADE        = Arcade
+LOCATION.CASTLE        = Château
+LOCATION.SPACE_STATION = Station Spaciale
+LOCATION.MOUNTAIN      = Montagne
+LOCATION.GARDEN        = Jardin
+LOCATION.HAUNTED_MANOR = Manoir hanté
+LOCATION.CRYSTAL_CAVE  = Grotte de cristal
+
+# ── Adventure locations · blurbs ──  # src: model/Models.kt (Location)
+LOCATION_DESC.TOWN          = Un lieu rempli de façades joyeuses.
+LOCATION_DESC.FOREST        = Feuilles majestuseuses et des baies cachées.
+LOCATION_DESC.BEACH         = Le soleil, le sable, et le vent salé.
+LOCATION_DESC.ARCADE        = Lumières néon et des tickets de partout.
+LOCATION_DESC.CASTLE        = Couloirs royaux et d'anciens secrets.
+LOCATION_DESC.SPACE_STATION = Station spaciale en apesanteur.
+LOCATION_DESC.MOUNTAIN      = Air frais et pentes raides.
+LOCATION_DESC.GARDEN        = Fleurs, insected, et chemins.
+LOCATION_DESC.HAUNTED_MANOR = Étrange mais très amical.
+LOCATION_DESC.CRYSTAL_CAVE  = Des pierres brillantes dans le noir.
+
+
+# ── Adventure durations ───────────  # src: model/Models.kt (AdventureDuration)
+DURATION.SHORT  = Court
+DURATION.MEDIUM = Intermédiaire
+DURATION.LONG   = Long
+
+
+# ── Accessories ───────────────────  # src: model/Models.kt (Accessory)
+ACCESSORY.NONE       = Aucun
+ACCESSORY.BOW        = Arc
+ACCESSORY.TOP_HAT    = Chapeau
+ACCESSORY.CROWN      = Courone
+ACCESSORY.SCARF      = Echarpe
+ACCESSORY.GLASSES    = Lunettes
+ACCESSORY.FLOWER     = Fleur
+ACCESSORY.PARTY_HAT  = Chapeau de fête
+
+
+# ── Food items ────────────────────  # src: model/SampleData.kt (foods)
+FOOD.APPLE     = Pomme
+FOOD.COOKIE    = Cookie
+FOOD.CAKE      = Gatêau
+FOOD.FISH      = Poisson
+FOOD.BERRY     = Baie
+FOOD.CARROT    = Carotte
+FOOD.ICE_CREAM = Glace
+
+
+# ── Shop items · names ────────────  # src: model/SampleData.kt (shop)
+# La nourriture est limitée: acheter un lot remplit la réserve. "×N" est une
+# quantité — garde le nombre; le nom correspond à l'entrée FOOD.* associée.
+SHOP_ITEM.APPLE_PACK      = Pomme ×5
+SHOP_ITEM.BERRY_PACK      = Baie ×5
+SHOP_ITEM.CARROT_PACK     = Carotte ×5
+SHOP_ITEM.COOKIE_PACK     = Cookie ×5
+SHOP_ITEM.ICE_CREAM_PACK  = Glace ×3
+SHOP_ITEM.FISH_PACK       = Poisson ×3
+SHOP_ITEM.CAKE_PACK       = Gâteau ×2
+SHOP_ITEM.EVOLUTION_SHARD = Éclat d'évolution
+
+# ── Shop items · blurbs ───────────  # src: model/SampleData.kt (shop)
+SHOP_ITEM_DESC.APPLE_PACK      = En-cas croquants du quotidien.
+SHOP_ITEM_DESC.BERRY_PACK      = De petites bouchées sucrées.
+SHOP_ITEM_DESC.CARROT_PACK     = Croquantes et saines.
+SHOP_ITEM_DESC.COOKIE_PACK     = Une gourmandise moelleuse.
+SHOP_ITEM_DESC.ICE_CREAM_PACK  = Fraîche et joyeuse.
+SHOP_ITEM_DESC.FISH_PACK       = Plein de protéines et délicieux.
+SHOP_ITEM_DESC.CAKE_PACK       = Un petit plaisir joyeux.
+SHOP_ITEM_DESC.EVOLUTION_SHARD = Permet l'évolution.
+# Affiché sur chaque aliment en boutique; {count} = unités en réserve.
+SHOP.IN_PANTRY = En réserve : {count}
+
+
+# ── Achievements · names ──────────  # src: model/PetPalState.kt (live awards)
+ACHIEVEMENT.FIRST_FRIEND     = Premier ami
+ACHIEVEMENT.SOCIAL_BUTTERFLY = Papillon social
+ACHIEVEMENT.CROWD_FAVORITE   = Favori du public
+ACHIEVEMENT.GROWING_UP       = Grandit
+ACHIEVEMENT.LEGEND           = Légende
+ACHIEVEMENT.EXPLORER         = Explorateur
+ACHIEVEMENT.DEDICATED        = Déterminé(e)
+ACHIEVEMENT.HIGH_ROLLER      = Bon Joueur
+
+# ── Achievements · descriptions ───  # src: model/PetPalState.kt (live awards)
+ACHIEVEMENT_DESC.FIRST_FRIEND     = Rencontré ton premier ami.
+ACHIEVEMENT_DESC.SOCIAL_BUTTERFLY = Rencontré 10 amis.
+ACHIEVEMENT_DESC.CROWD_FAVORITE   = Rencontré 100 amis.
+ACHIEVEMENT_DESC.GROWING_UP       = Atteint le niveau supérieur.
+ACHIEVEMENT_DESC.LEGEND           = Atteint le niveau légendaire.
+ACHIEVEMENT_DESC.EXPLORER         = Complété 25 aventures.
+ACHIEVEMENT_DESC.DEDICATED        = Atteint une suite de 7 jours de jey.
+ACHIEVEMENT_DESC.HIGH_ROLLER      = Atteint le niveau 25.
+
+
+# ── Onboarding ────────────────────  # src: ui/onboarding/OnboardingFlow.kt
+ONBOARD.WELCOME_TITLE  = Bienvenue!
+ONBOARD.WELCOME_BODY   = Élève un animal virtuel, envoie-le à l'aventure, et rencontre les animaux d'autres joueurs.
+ONBOARD.LINK_3DS_BTN   = Lier une 3DS
+ONBOARD.PHONE_ONLY_BTN = Plus tard
+ONBOARD.NO_3DS_NOTE    = Une 3DS n'est pas requise pour l'instant — vous pourrez en lier une plus tard dans les paramètres.
+ONBOARD.LINK_ID_TITLE  = Votre identifiant de lien
+ONBOARD.LINK_ID_BODY   = Entrez cet identifiant sur votre 3DS pour lier votre animal à la console.
+ONBOARD.CONTINUE       = Continuer
+ONBOARD.BACK           = Retour
+ONBOARD.CHOOSE_PET     = Choisit ton animal
+# ph: {species} = the chosen SPECIES.* name
+ONBOARD.NAME_LABEL     = Nomme ton {species}
+ONBOARD.START_PLAYING  = Commencer
+
+
+# ── Boot / loading / connection ───  # src: ui/screens/BootScreens.kt
+BOOT.LOADING          = Chargement…
+BOOT.OFFLINE_TITLE    = Tu est hors-ligne
+BOOT.OFFLINE_BODY     = PetPal à besoin d'une connection Wi-Fi ou cellulaire pour jouer.
+BOOT.TRY_AGAIN        = Réessaye
+# Banned (401) screen
+BOOT.BANNED_BODY      = Cet animal à été banni de PetPal :(
+BOOT.BANNED_PET_ID    = Identifiant
+BOOT.BANNED_CONTACT   = Si vous pensez que c'est une erreur, contactez le support accompagné de l'identifiant.
+
+
+# ── Bottom navigation ─────────────  # src: MainActivity.kt
+NAV.PET       = Animal
+NAV.ADVENTURE = Aventure
+NAV.FRIENDS   = Amis
+NAV.NEWS      = Actus
+NAV.AWARDS    = Récompeses
+NAV.SETTINGS  = Paramètres
+
+
+# ── Pet screen ────────────────────  # src: ui/screens/PetScreen.kt
+# ph: {level} = the pet's level number
+PET.LEVEL          = Niveau {level}
+# ph: {mood} = a MOOD.* value
+PET.FEELING        = Se sent {mood}
+# ph: {name} = the pet's name
+PET.START_STREAK   = Prends soin de {name} pour lancer la chaîne
+PET.STAT_HAPPINESS = Bonheur
+PET.STAT_ENERGY    = Énergétique
+PET.STAT_HUNGER    = Faim
+PET.CARE_HEADER    = Soin
+PET.ACTION_FEED    = Nourrir
+PET.ACTION_PLAY    = Jouer
+PET.ACTION_REST    = Se reposer
+PET.ACTION_CUDDLE  = Câliner
+PET.ACTION_TALK    = Parler
+PET.PICK_SNACK     = Choisir un repas
+# ph: {count} = how many of this food you own (shown on each snack)
+PET.FOOD_COUNT     = ×{count}
+PET.SNACKS_LIMITED = Les repas sont limités — réapprovisionne-toi en Boutique.
+PET.CUSTOMIZE_DESC = Customiser
+PET.ARCADE_TITLE   = Arcade
+PET.ARCADE_BODY    = Jouer à la "Chasse aux étoiles" pour des pièces.
+PET.ARCADE_PLAY    = Jouer
+PET.SHOP_TITLE     = Boutique
+PET.SHOP_BODY      = Dépense de l'argent dans de la nourriture, des jouets, ou des éclats d'évolution.
+PET.SHOP_OPEN      = Ouvert
+PET.EVOLUTION      = Évolution
+# ph: {stage} = next STAGE.* value, {passes} = number of passes needed
+PET.EVOLUTION_NEXT = Prochaine évolution: {stage} à {passes} passages
+
+# ── Pet care results (last-action text) ──  # src: model/PetPalState.kt
+# ph: {name} = pet name, {food} = a FOOD.* name
+PET.FED        = Tu as nourri {name} avec un(e) {food}. Yum!
+# ph: {food} = a FOOD.* name — shown when you tap a snack you're out of
+PET.OUT_OF_FOOD = Tu n'as plus de {food}. Achètes-en en Boutique! 🛒
+PET.PLAYED     = Tu as joué avec {name}!
+PET.CHATTED    = Tu as parlé avec {name}.
+# ph: {item} = a SHOP_ITEM.* name, {emoji} = the item's emoji
+PET.BOUGHT     = Acheté {item}! {emoji}
+# ph: {score} = mini-game score, {coins} = coins earned
+PET.STAR_TAP_RESULT = Score de {score} à la Chasse aux Étoiles! +{coins} pièces 🪙
+
+
+# ── Adventure screen ──────────────  # src: ui/screens/AdventureScreen.kt
+# ph: {name} = pet name
+ADVENTURE.HEADER          = Envoyer {name} explorer et chercher des récompenses.
+ADVENTURE.TRIP_LENGTH     = Longeur du chemin
+# ph: {caption} = a duration caption like "2 min"
+ADVENTURE.DEMO_LENGTH     = Environ {caption} dans cette démo.
+ADVENTURE.CHOOSE_DEST     = Choisis une destination
+# ph: {name} = pet name, {location} = a LOCATION.* name
+ADVENTURE.SEND_TO         = Envoie {name} à le/la {location}
+# ph: {name} = pet name, {location} = a LOCATION.* name
+ADVENTURE.EXPLORING       = {name} explore le/la {location}.
+ADVENTURE.READY_HOME      = Prêt à renter! 🎁
+# ph: {time} = time remaining, e.g. "1m 30s"
+ADVENTURE.BACK_IN         = De retour dans {time}
+ADVENTURE.COLLECT_REWARDS = Collecter les récompenses
+ADVENTURE.ADVENTURING     = Adventuring…
+ADVENTURE.CANCEL          = Annuler
+ADVENTURE.RESULT_OK       = Bien!
+ADVENTURE.BACK_HOME       = Retour à la maison!
+# ph: {count} = number of pets met  (see ADVENTURE.MET_ONE / MET_MANY wording)
+ADVENTURE.MET_ONE         = Tu as rencontré 1 animal!
+ADVENTURE.MET_MANY        = Tu as rencontré {count} animaux!
+ADVENTURE.MET_NONE_BODY   = Ton animal à exploré et trouvé des pièces, mais n'a rencontré personne. Réesayez!
+ADVENTURE.MET_SOME_BODY   = Ils sont dans le journal — Envoie une requête d'ami dans la section "Amis".
+
+
+# ── Friends screen ────────────────  # src: ui/screens/FriendsScreen.kt
+FRIENDS.HEADER          = Amis
+FRIENDS.HEADER_SUB      = Rencontre des amis en aventure, puis envoie une requête d'ami.
+FRIENDS.STAT_ENCOUNTERS = rencontres
+FRIENDS.STAT_FRIENDS    = amis
+FRIENDS.STAT_MET        = rencontrés
+FRIENDS.REQUESTS_LABEL  = Requêtes d'amis
+FRIENDS.ACCEPT          = Accepter
+FRIENDS.DECLINE         = Refuser
+FRIENDS.YOUR_FRIENDS    = Tes amis
+FRIENDS.ADD_BY_ID       = Ajouter un ami par identifiant
+FRIENDS.ID_FIELD        = Identifiant (PP-XXXX-XXXX)
+FRIENDS.ADD_TO_GUESTBOOK = Ajouter au journal d'invité
+FRIENDS.WORKING         = Chargement…
+FRIENDS.MET_LABEL       = Tes rencontres
+# ph: {name} = pet name
+FRIENDS.MET_EMPTY       = Aucun animal pour l'instant. Envoie {name} à l'aventure, ajoute un identifiant, ou passe en personne.
+FRIENDS.ADD_FRIEND      = Ajouter un ami
+FRIENDS.REQUESTED       = Demandé
+FRIENDS.VIEW            = Voir
+# Fenêtre « Voir » — un aperçu détaillé d'un animal rencontré (son animal, son identifiant, son appareil).
+FRIENDS.DETAIL_DEVICE   = Appareil
+FRIENDS.DETAIL_PET_ID   = Identifiant
+FRIENDS.DETAIL_CLOSE    = Fermer
+FRIENDS.DETAIL_COPY_ID  = Copier l'ID
+# étiquette du presse-papiers affichée par le système lors de la copie
+FRIENDS.CLIPBOARD_PET_ID = PetPal Pet ID
+
+
+# ── News / Announcements ──────────  # src: ui/screens/AnnouncementsScreen.kt
+NEWS.HEADER      = Actus
+NEWS.HEADER_SUB  = Annonces de l'équipe PetPal
+NEWS.LOADING     = Chargement des annonces…
+NEWS.SERVER_FAIL = Serveur injoignable. Réessaie plus tard en tirant vers le haut.
+NEWS.EMPTY       = Aucune annonce pour le moment. Reviens bientôt!
+
+
+# ── Awards screen ─────────────────  # src: ui/screens/AwardsScreen.kt
+AWARDS.HEADER      = Récompenses
+AWARDS.HEADER_SUB  = États atteins sur le chemin.
+AWARDS.UNLOCKED_DESC = Débloqué
+
+
+# ── Customize screen ──────────────  # src: ui/screens/CustomizeScreen.kt
+CUSTOMIZE.TITLE      = Personnaliser
+CUSTOMIZE.BODY_COLOR = Couleur du corps
+CUSTOMIZE.AUTO       = Automatique
+CUSTOMIZE.ACCESSORY  = Accessoire
+
+
+# ── Settings screen ───────────────  # src: ui/screens/SettingsScreen.kt
+SETTINGS.TITLE          = Paramètrse
+SETTINGS.LINK_3DS       = Lier à une 3DS
+SETTINGS.LINK_3DS_BODY  = Optionel — Une 3DS n'est pas requise. Le lien vous permet de synchroniser les passages entre la 3DS et le smartphone.
+SETTINGS.STATUS_LINKED  = Status: Lié ✓
+SETTINGS.STATUS_UNLINKED = Status: Non lié
+SETTINGS.SHOW_LINK_ID   = Afficher mon identifiant
+SETTINGS.YOUR_LINK_ID   = Ton identifiant
+SETTINGS.LINK_ID_COPIED = Identifiant copié
+SETTINGS.COPY           = Copier
+SETTINGS.LINK_3DS_HOWTO = Sur votre 3DS ouvrez les paramètres → "Lier au smartphone" et entrez cet identifiant pour les connecter.
+SETTINGS.BACKUP_OK      = Animal sauvegardé sur le serveur ✓
+SETTINGS.BACKUP_FAIL    = La synchronisation a échouée — vérifie ta connexion
+SETTINGS.SYNCING        = Synchronisatiob…
+SETTINGS.BACKUP_BTN     = Sauvegarder l'animal sur le serveur 
+SETTINGS.SECTION_APPEARANCE = Apparence
+SETTINGS.DARK_MODE      = Mode sombre
+SETTINGS.DARK_MODE_SUB  = Pour correspondre au ciel noir
+SETTINGS.SECTION_FEEDBACK = Retours
+SETTINGS.SOUND          = Effects sonores
+SETTINGS.SOUND_SUB      = Pièces et petites actions
+SETTINGS.HAPTICS        = Sensations
+SETTINGS.HAPTICS_SUB    = Une petite vibration quand tu prend soin de ton animal
+SETTINGS.SECTION_NOTIFS = Notifications
+SETTINGS.REMINDERS      = Rappels
+# ph: {name} = pet name
+SETTINGS.REMINDERS_SUB  = Être notifié quand {name} a faim ou que la chaîne est à risque
+SETTINGS.SECTION_ABOUT  = À propos
+SETTINGS.VERSION_LABEL  = Version
+# L'app affiche la vraie version installée au runtime; ceci n'est qu'un secours.
+SETTINGS.VERSION_VALUE  = 0.1.7
+SETTINGS.PET_LABEL      = Animal
+# ph: {name} = pet name, {species} = a SPECIES.* name
+SETTINGS.PET_VALUE      = {name} le {species}
+SETTINGS.LINK_WEBSITE   = Site Web
+SETTINGS.LINK_SOURCE    = Code Source
+SETTINGS.LINK_DISCORD   = Discord
+SETTINGS.DISCLAIMER     = PetPal est un homebrew gratuit et open-source. Non-affilié avec Nintendo.
+# clipboard label shown by the OS when copying the Link ID
+SETTINGS.CLIPBOARD_LABEL = Identification de lien PetPal
+
+
+# ── Mini-game: Star Tap ───────────  # src: ui/screens/MiniGame.kt
+# ph: {secs} = round length in seconds
+MINIGAME.INTRO      = Touchez l'étoile aussi rapidement que vous pouvez pendant {secs} secondss. Chaque coup vous rapporte des pièces!
+MINIGAME.START      = Commencer
+MINIGAME.TIMES_UP   = Temps écoulé!
+# ph: {score} = final score
+MINIGAME.YOU_SCORED = Score final: {score}.
+# ph: {coins} = coins rewarded (score × 2)
+MINIGAME.REWARD     = Récompense: +{coins} pièces 🪙 · Animal plus heureux 😊
+MINIGAME.PLAY_AGAIN = Rejouer
+MINIGAME.DONE       = Terminé
+
+
+# ── Pass a pet (QR / NFC) ─────────  # src: share/PassSection.kt, share/QrCode.kt
+PASS.TITLE          = Passage avec un animal
+PASS.BODY           = Échange en personne: scanne le code d'un ami, montre le tien, ou touchez vos téléphones.
+PASS.NFC_HINT       = NFC: Tenez deux téléphones dos-à-dos pour automatiquement échanger.
+PASS.MY_PASS        = Mon passage
+PASS.QR_DESC        = Le QR code de mon animal
+PASS.NO_ID          = Pas d'identifiant — connecte-toi d'abord à Interner.
+PASS.SCAN_ME        = Ai un ami qui scanne ceci (ou touchez vos téléphones) pour vous ajouter en amis.
+PASS.CLOSE          = Fermer
+
+
+# ── Notifications ─────────────────  # src: notify/CareReminders.kt
+NOTIF.CHANNEL_NAME  = Rappels
+NOTIF.CHANNEL_DESC  = Te notifie quand ton animal va mal
+NOTIF.TITLE         = PetPal
+# ph: {name} = pet name
+NOTIF.HUNGRY        = {name} à faim! 🍽️
+NOTIF.TIRED         = {name} est fatigué. 😴
+NOTIF.SAD           = Vous manquez à {name}. 😢
+# ph: {days} = current care-streak length, {name} = pet name
+NOTIF.STREAK_RISK   = Garde ta chaîne de {days} jours active — va voir {name}! 🔥
+
+
+# ── Server / status messages ──────  # src: data/AppController.kt, ui/screens/ShopScreen.kt
+STATUS.SERVER_UNREACHABLE_BOOT = Impossible d'atteindre le serveur PetPal. Vérifie ta connexion.
+STATUS.ENTER_ID_FIRST   = Entrez un identifiant pour commencer.
+STATUS.OWN_PET          = C'est ton propre animal!
+# ph: {code} = the Pet ID that was entered
+STATUS.NO_PET_FOUND     = Aucun animal trouvé pour le code {code}.
+# ph: {name} = the added pet's name (or its Pet ID if unnamed)
+STATUS.ADDED_GUESTBOOK  = Ajouté {name} à ton journal!
+STATUS.SERVER_TRY_AGAIN = Impossible d'atteindre le serveur. Réesaye.
+STATUS.NOT_SIGNED_IN    = Non connecté.
+STATUS.NOW_FRIENDS      = Vous êtes maintenant amis! 🎉
+STATUS.REQUEST_ALREADY  = Requête déjà envoyée.
+STATUS.ALREADY_FRIENDS  = Vous êtes déjà amis.
+STATUS.REQUEST_SENT     = Requête envoyée.
+STATUS.REQUEST_FAILED   = Impossible d'envoyer la requête.
+STATUS.FRIEND_ADDED     = Ami ajouté! 🎉
+STATUS.REQUEST_DECLINED = Requête refusée.
+STATUS.SOMETHING_WRONG  = Quelque chose c'est mal passé.
+# ph: {item} = a SHOP_ITEM.* name, {emoji} = its emoji
+STATUS.BOUGHT           = à ramené un {item}! {emoji}
+# ph: {item} = a SHOP_ITEM.* name
+STATUS.NOT_ENOUGH_COINS = Pas assez de pièces pour {item}.
+
+
+# ── Defaults / fallbacks ──────────  # src: model/PetPalState.kt
+# Default pet name before the player chooses one (used in previews/new state).
+DEFAULT.PET_NAME = Kiwi
+# Fallback name applied when a player leaves the name blank.
+DEFAULT.PET_NAME_FALLBACK = Pal

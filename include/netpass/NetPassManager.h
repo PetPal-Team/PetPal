@@ -71,10 +71,6 @@ public:
         s.serviceUp = s.boxReady = s.scanning = isAvailable();
         return s;
     }
-
-    // Run an on-device round-trip diagnostic (device transports only) and return
-    // a short human-readable result for the UI. Default: nothing to test.
-    virtual std::string selfTest() { return "self-test: n/a"; }
 };
 
 // -----------------------------------------------------------------------------
@@ -119,10 +115,6 @@ public:
         s.serviceUp = s.serviceUp && started_;
         return s;
     }
-
-    // On-device CECD round-trip diagnostic (writes+reads our own outbox). Returns
-    // a short result string for the UI. Safe to call anytime.
-    std::string selfTest() { return transport_ ? transport_->selfTest() : "no transport"; }
 
 private:
     std::unique_ptr<INetPassTransport> transport_;
@@ -171,7 +163,6 @@ public:
     int  drainInbox(std::vector<std::vector<uint8_t>>& out) override;
     bool isAvailable() const override { return available_; }
     StreetPassStatus status() const override;
-    std::string selfTest() override;
 
 private:
     uint32_t             titleId_;
@@ -181,8 +172,9 @@ private:
     uint8_t              cecState_     = 0;      // last CecStateAbbreviated
     int                  inboxWaiting_ = 0;      // messages seen at last poll
     uint32_t             lastError_    = 0;      // last cecd Result (0 == ok)
-    uint32_t             titleRc_      = 0;      // last box-title write Result
-    uint32_t             iconRc_       = 0;      // last box-icon write Result
+    uint32_t             regRc_        = 0;      // box-registration Result (0 == ok)
+    int                  regStep_      = 0;      // which registration step failed (0 == ok)
+    uint32_t             mboxListRc_   = 0;      // last /CEC/MBoxList____ register Result (0 ok)
     std::vector<uint8_t> outbox_;                // last published payload (cache)
 };
 
@@ -202,7 +194,6 @@ public:
     int  drainInbox(std::vector<std::vector<uint8_t>>& out) override; // drain queue
     bool isAvailable() const override { return true; }
     StreetPassStatus status() const override;
-    std::string selfTest() override;      // one synchronous exchange + report
 
 private:
     static void threadEntry(void* arg);
@@ -220,6 +211,29 @@ private:
     std::atomic<bool>          lastOk_{false};
     std::vector<uint8_t>              outbox_;       // our packet (guarded)
     std::vector<std::vector<uint8_t>> inbox_;        // received packets (guarded)
+};
+
+// Runs two transports at once. PetPal uses this on the 3DS to register + exchange
+// a REAL CEC message box via CecdTransport (local StreetPass, and NetPass relays
+// that same box over the internet) WHILE keeping its own teampetpal.com relay
+// (HttpPassTransport), so passing keeps working whether or not the CEC path does.
+// Outbox writes go to both; the drained inbox is the union of both.
+class DualTransport : public INetPassTransport {
+public:
+    DualTransport(std::unique_ptr<INetPassTransport> primary,
+                  std::unique_ptr<INetPassTransport> secondary)
+        : a_(std::move(primary)), b_(std::move(secondary)) {}
+
+    bool init() override;
+    void shutdown() override;
+    bool setOutbox(const uint8_t* data, size_t len) override;
+    int  drainInbox(std::vector<std::vector<uint8_t>>& out) override;
+    bool isAvailable() const override;
+    StreetPassStatus status() const override;
+
+private:
+    std::unique_ptr<INetPassTransport> a_; // primary: CECD (the box we surface)
+    std::unique_ptr<INetPassTransport> b_; // secondary: internet relay
 };
 #endif // __3DS__
 

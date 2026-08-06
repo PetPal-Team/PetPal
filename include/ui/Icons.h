@@ -40,4 +40,23 @@ enum class Btn : int {
     R = 20,
 };
 
+// Full-color decorative sprites (from the itch.io "Pixel UI pack 3"). Unlike the
+// UI icons these are NOT white silhouettes, so they're drawn UNTINTED via
+// UIManager::drawDeco. Indices continue after the button glyphs in sprites.t3s.
+enum class Deco : int {
+    StarFull  = 21,  // gold star  - filled friendship pip / unlocked award
+    StarEmpty = 22,  // gray star  - empty pip / locked award
+    BarTrack  = 23,  // empty dark stat-bar track (stretched to width)
+    BarPink   = 24,  // happiness fill
+    BarYellow = 25,  // energy fill
+    BarOrange = 26,  // hunger fill
+    BarBlue   = 27,  // xp / progress fill
+    // Evolution-stage badges (gem shields + a winged emblem for Legendary).
+    EmblemBaby      = 28,  // green gem
+    EmblemTeen      = 29,  // blue gem
+    EmblemAdult     = 30,  // orange gem
+    EmblemRare      = 31,  // silver gem
+    EmblemLegend    = 32,  // winged emblem
+};
+
 } // namespace petpal

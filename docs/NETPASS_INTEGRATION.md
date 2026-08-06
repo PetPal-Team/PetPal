@@ -1,19 +1,24 @@
 # PetPal NetPass / StreetPass Integration
 
-> **CURRENT STATE (important):** real StreetPass over CECD turned out to be a
-> **dead end for homebrew** — a homebrew title cannot create a registered CEC
-> message box (confirmed on hardware, and by the NetPass author). PetPal now
-> exchanges pets over its **own internet relay** (`HttpPassTransport` →
-> `teampetpal.com/api/pass`), which needs no CECD and no NetPass. The CECD code
-> (`CecdTransport`) is kept for reference but is **not used**. See
-> "Why CECD was abandoned" and "Internet relay" below. Everything above the
-> transport (packet format, meeting pipeline, friends/journal) is unchanged.
+> **CURRENT STATE (important):** real StreetPass over CECD **works** — a homebrew
+> title *can* create a registered CEC message box after all. Confirmed on hardware
+> (2026-08): PetPal's box is created, enabled, given a title/icon + shared HMAC key,
+> and listed in the global `MBoxList`; it shows in *System Settings → Data
+> Management → StreetPass Management* and in cectool (`Enabled: Yes`, title id
+> `0F00D500`). The last piece — verifying console-to-console *exchange* — needs a
+> second console/NetPass and is **in the works**. On device, `CecdTransport` (real
+> StreetPass) and `HttpPassTransport` (internet relay) run **together** via
+> `DualTransport`; the relay stays the reliable path meanwhile. Real StreetPass
+> requires the installed **`.cia`** (the exheader is only granted `cecd:s` when the
+> title is installed to the HOME Menu). See "CECD StreetPass — how box creation was
+> solved" and "Internet relay" below. Everything above the transport (packet
+> format, meeting pipeline, friends/journal) is unchanged.
 
 PetPal exchanges a small, fixed packet describing your pet with other PetPal
-players. That packet is transport-agnostic — historically it was meant to ride
-the system's **CECD** StreetPass boxes (local) / **NetPass** relay (internet),
-but since homebrew can't register a CEC box, it now rides PetPal's own HTTPS
-relay. One wire format, one meeting pipeline; only the transport differs.
+players. That packet is transport-agnostic — it rides the system's **CECD**
+StreetPass boxes (local StreetPass, which **NetPass** also relays over the internet)
+**and** PetPal's own HTTPS relay, at the same time. One wire format, one meeting
+pipeline; only the transport differs.
 
 ## The packet — `PetPalPacket`
 
@@ -69,41 +74,46 @@ Two implementations ship:
   test messages. Used by the host tests and as the default when no device
   transport is supplied.
 * **`CecdTransport`** (`__3DS__` only, `source/netpass/CecdTransport.cpp`) —
-  a from-scratch **`cecd:u` IPC client** (libctru ships no CECD bindings, so the
+  a from-scratch **`cecd:s` IPC client** (libctru ships no CECD bindings, so the
   raw service IPC is implemented directly). Command IDs, parameter layouts, and
-  the CEC structures come from 3dbrew + the Citra/Azahar HLE. PetPal's box is
-  keyed by a fixed CEC program id (`kCecProgramId = 0x000F00D5`, derived from the
-  RSF UniqueId) so all installs match.
+  the CEC structures come from 3dbrew, the Citra/Azahar HLE, and NetPass's own
+  `cecd.c`. PetPal's box is keyed by its **CEC program id**
+  `kCecProgramId = 0x0F00D500` — the low 32 bits of the title id
+  (`uniqueId 0xf00d5 << 8`), which is how CEC keys every box and what `cecd:u`
+  authorizes a title to touch. (The old `0x000F00D5` was wrong — it's why box
+  calls returned `0xC8A10BF0`.)
   * `init()` →
-    1. `srvGetServiceHandle("cecd:u")` + `GetCecdState` handshake.
-    2. `Open(MBoxInfo, Read)`, falling back to `Open(MBoxInfo, Create|Read|Write)`
-       so cecd provisions the box (dir tree + `MBoxInfo` with a `private_id` and
-       `hmac_key`) if it doesn't exist yet.
-    3. **Enable the box for StreetPass** — read the `MBoxInfo` blob, set its
-       `enabled` byte (offset `0x0D`), and write it back with `OpenAndWrite`
-       (read-modify-write preserves the `private_id`/`hmac_key`).
-    4. **`Start(CEC_COMMAND_START)`** — nudge the CEC daemon into its scan/
-       exchange cycle so the system swaps our box.
-  * `setOutbox()` → `WriteMessage(OutboxMsg)` with a fixed message id.
+    1. Open **`cecd:s`** (falls back to `cecd:u`) + `GetCecdState` handshake.
+    2. `registerBox()` — create the FULL box the way the system requires (see
+       "how box creation was solved" below), or early-out if already registered.
+    3. `ensureBoxProvisioned()` — keep it enabled, right type flag, and the shared
+       HMAC key (upgrades boxes made by older builds).
+    4. Rewrite the box **title + icon** each boot (heals older/garbled icons).
+    5. **`Start(CEC_COMMAND_START)`** — nudge the CEC daemon into its scan cycle.
+  * `setOutbox()` → `writeBoxMessage()` — a full HMAC-signed CEC message + BoxInfo
+    refresh (not a raw body).
   * `drainInbox()` → `OpenAndRead(InboxInfo)` to enumerate waiting messages
     (`CecBoxInfoHeader` + `CecMessageHeader`×N, header `0x70`, id at `0x20`),
     then `ReadMessage` + `Delete` for each (bounded, clamped to 32/poll).
-  * `status()` → cached `StreetPassStatus` (service up, box ready, scanning,
-    inbox waiting, raw CEC state, last error) for the UI. Never issues IPC.
   * `shutdown()` → `svcCloseHandle` **only** (CEC is intentionally left running so
     the system keeps exchanging while the console sleeps).
 
   Every call is bounded and error-checked, so a missing service or an
   unprovisioned box degrades to "no exchange" rather than hanging.
+* **`DualTransport`** (`__3DS__` only) — runs `CecdTransport` (real StreetPass) and
+  `HttpPassTransport` (relay) together: outbox writes go to both and the drained
+  inbox is their union (deduped in `NetPassManager::poll`). This is what `Game`
+  constructs on device, so passing works whether or not a given path does.
 
 `NetPassManager` is constructed with whichever transport is appropriate; the
 rest of the game is identical. It also exposes `streetpassStatus()` which the
 Friends screen renders as a live status line, with **X = check now** (an on-
 demand `drainInbox`) for testing.
 
-## Internet relay — `HttpPassTransport` (the active path)
+## Internet relay — `HttpPassTransport` (the reliable path)
 
-Since homebrew can't register a CEC box, PetPal runs its own relay:
+PetPal also runs its own relay — today the dependable everyday path, and the
+fallback while console-to-console StreetPass exchange is being finished:
 
 * **Client** (`source/netpass/HttpPassTransport.cpp`, `__3DS__` only). A background
   worker thread (so the UI never blocks) periodically calls
@@ -143,18 +153,31 @@ and open the printed URL.
 > the app computes `D2904EE3` where zlib gives `ABCDF720` for the same bytes). Do
 > not use `zlib.crc32` to build packets.
 
-## Why CECD was abandoned (reference)
+## CECD StreetPass — how box creation was solved
 
-The sections below document the CECD/StreetPass attempt. It is **not used** — kept
-because the IPC layer is correct and reusable if box creation is ever solved.
+Box creation *is* possible; it just needs the exact recipe the system uses (from
+NetPass's `cecd.c`). Two things had blocked it earlier:
 
-On hardware, `OpenAndRead(MBOX_INFO)` for our own title returned `0xC8A10BF0`
-(CEC / InvalidState) for **both** id forms — i.e. our box is not a valid,
-registered CEC box. `Open(MBoxInfo, Create)` reports success but does not produce
-a registered box (it never appears in *System Settings → StreetPass Management*).
-Confirmed unsolved by the NetPass author, and the dedicated `libctru-cecd`
-library has no box-creation function either. Conclusion: **a homebrew title cannot
-create an exchange-eligible CEC StreetPass box** with any known method.
+1. **Wrong service + id.** PetPal opened `cecd:u` (which only lets a title touch
+   its *own* box) with the wrong program id `0x000F00D5`, so every call returned
+   `0xC8A10BF0` (CEC / InvalidState). Fix: open **`cecd:s`** (the system CEC
+   service, granted to an installed CIA) and use the real CEC id **`0x0F00D500`**
+   (title-id low 32 bits). With the correct id even `cecd:u` accepts the box.
+2. **Wrong create call.** CEC box files must be **created** with
+   `OpenRawFile`(0x01, specific open flags) **+** a separate `WriteRawFile`(0x05) —
+   *not* `OpenAndWrite`(0x11). `registerBox()` mirrors NetPass exactly: make the
+   three directories (open flag `8`), then `MBoxInfo` (magic 0x6363, flag `6`),
+   `InboxInfo` (0x6262, flag `0x14`), `OutboxInfo` (0x6262, flag `6`) +
+   `OutBoxIndex` (0x6767), a UTF-16 title + a 48×48 tiled RGB565 icon, and finally
+   an entry in the global `/CEC/MBoxList____`. `OpenAndWrite` is correct only to
+   *update* files that already exist (message I/O, the enable flag, the mbox list).
+
+Result (confirmed on hardware): the box shows in *System Settings → Data
+Management → StreetPass Management* and in cectool, `Enabled: Yes`, title id
+`0F00D500`. Requires the installed **`.cia`** — a `.3dsx` under the Homebrew
+Launcher inherits HBL's services (no `cecd:s`) and HBL's title id, so it can't
+register the box. Console-to-console *exchange* verification (a second unit or a
+NetPass peer) is the remaining "in the works" step.
 
 ## Meeting pipeline
 
@@ -180,30 +203,24 @@ Legendary Friend.
 
 ## Provisioning the CEC box (device)
 
-To receive StreetPass/NetPass traffic, PetPal must own a **CEC message box**
-keyed by a stable, unique program id (`kCecProgramId = 0x000F00D5` in
-`CecdTransport.cpp`, derived from the RSF UniqueId `0xf00d5`). `init()` now does
-this automatically each launch:
+`init()` registers the box automatically each launch via `registerBox()` (see
+"how box creation was solved" for the exact file recipe). Key details:
 
-1. Open the box, creating it if missing (cecd fills in `private_id`/`hmac_key`).
-2. Set the `MBoxInfo.enabled` flag so the system will scan/relay it.
-3. `Start(CEC_COMMAND_START)` to run the exchange cycle.
-
-`init()` also writes a **box title + icon** (paths `110`/`101`) best-effort, since
-retail StreetPass boxes carry these and the system/relay may require them before
-scanning a homebrew box. The exact on-disk formats are the least-documented part
-of CECD, so these are educated guesses (title = UTF-16LE; icon = 48×48 RGB565).
-Their write `Result`s are surfaced by `selfTest()` (`title XXXX icon XXXX`) so we
-can iterate from real-hardware feedback.
-
-Notes / things that may still need on-device iteration:
-
-* Keep the CEC id **constant across versions** — changing it orphans the box and
-  every existing friend mapping.
-* NetPass forwards boxes generically, so no coordination is required beyond
-  having the box exist and be enabled (steps above).
-* If exchange still doesn't happen, the title/icon **format** (size/layout) is the
-  prime suspect — adjust it using the `Result` codes from the on-device self-test.
+* **Service + id:** `cecd:s`, program id `kCecProgramId = 0x0F00D500` (title-id
+  low 32 bits). Keep this id **constant across versions** — changing it orphans the
+  box and every friend mapping. `petpal.rsf`'s service list includes `cecd:s`.
+* **Shared HMAC key:** all installs bake in the same 32-byte `kHmacKey`, so a passed
+  message validates against the receiver's box (a per-title/derived key would leave
+  consoles unable to read each other's pets). Not a server secret — it's a
+  StreetPass integrity key, on every device by design.
+* **Box sizing:** tuned to PetPal's ≤64-byte packet (`kCecMaxMessageSize = 512`,
+  inbox 25 msgs, outbox 1) rather than NetPass's relay-everything defaults.
+* **Title + icon:** paths `110`/`101`. The icon is 48×48 RGB565 in the **3DS tiled
+  layout** (8×8 tiles, Morton order — verified against cectool's `tileToBuf`); a
+  linear buffer renders as garbage. `writeBoxNameAndIcon()` rewrites both each boot
+  so older boxes self-heal.
+* **Must run the `.cia`.** `cecd:s` and the correct title id are only granted to the
+  installed title; a `.3dsx` under HBL can't register the box.
 
 ## Hardware gotchas found while bringing this up
 
@@ -232,28 +249,29 @@ Two real-hardware-only bugs the emulators don't surface (both fixed):
    even the `MBoxInfo` read), and `ReadMessage` returns `[header | body]`, so
    `drainInbox` now skips the `0x70` header before validating the packet.
 
-> **Open caveat (box creation):** the proven reference (NetPass) never *creates*
-> boxes — it only works with boxes the system/retail titles already made. Creating
-> a brand-new, exchange-eligible CEC box for a homebrew title is not something any
-> known code does, so whether the system/NetPass will actually relay PetPal's
-> self-made box remains the real unknown, even once the local write/read round-trip
-> (the **Y** self-test) passes.
+> **Remaining unknown (exchange):** box *creation* is solved and confirmed on
+> hardware (the box registers, enables, and appears in System Settings + cectool).
+> What still needs a second console — or a NetPass peer — to verify is the actual
+> *exchange*: that the system/NetPass swaps PetPal's self-made box the same way it
+> does retail boxes. That's the "in the works" piece; the internet relay covers
+> passing until it's confirmed.
 
 ## On-device diagnostics
 
-Because real exchange needs a *second* PetPal box (another console or a NetPass
-peer), two hooks let you verify everything else on one unit, from the Friends
-screen:
+From the Friends screen:
 
-* **Y — CECD self-test.** `CecdTransport::selfTest()` writes a known 64-byte
-  pattern to our **own outbox**, reads it back, compares, and restores the real
-  outbox. Proves `WriteMessage`/`ReadMessage` + the CEC I/O path work on hardware
-  (isolating that from "does the system relay"). Shows e.g.
-  `CECD I/O OK | title 00000000 icon 00000000`.
+* **X — check for passes now.** Drains the inbox on demand and reports how many
+  passes/new friends arrived. A normal user-facing control (also handy for
+  on-device testing); the bottom-edge status line shows live StreetPass state.
 * **SELECT — inject a test pass** *(debug builds only,* `make EXTRA_DEFS=-DPETPAL_DEBUG=1`*)*.
   `Game::injectTestPass()` runs a synthetic visitor through the **real** meeting
   pipeline (friend + journal + celebration), bypassing CECD, so you can confirm
   the receive→friend flow renders correctly on the console.
+
+> The earlier **Y — CECD self-test** diagnostic (a raw `svc=… step=… reg=…`
+> registration dump) has been removed now that box creation is confirmed working
+> on hardware; box registration results are still tracked internally in
+> `CecdTransport` for debugging via a debugger/log.
 
 > libctru's CECD coverage is nonexistent, so `CecdTransport` centralizes all
 > CECD IPC in one place; box management can be adjusted here without touching

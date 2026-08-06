@@ -23,6 +23,7 @@
 #include "ui/screens/AchievementsScreen.h"
 #include "ui/screens/ShopScreen.h"
 #include "ui/screens/SettingsScreen.h"
+#include "ui/screens/AnnouncementsScreen.h"
 
 #ifdef __3DS__
 #include <3ds.h>
@@ -131,6 +132,7 @@ bool UIManager::init() {
     screens_[(int)ScreenId::Achievements]  .reset(new AchievementsScreen(game_, this));
     screens_[(int)ScreenId::Shop]          .reset(new ShopScreen(game_, this));
     screens_[(int)ScreenId::Settings]      .reset(new SettingsScreen(game_, this));
+    screens_[(int)ScreenId::Announcements] .reset(new AnnouncementsScreen(game_, this));
 
     // Start on onboarding for new players, otherwise the hub.
     const ScreenId start = game_->onboardingComplete() ? ScreenId::MainMenu
@@ -442,6 +444,64 @@ void UIManager::drawIcon(Icon id, float cx, float cy, float size, u32 tint) {
     C2D_ImageTint t;
     C2D_PlainImageTint(&t, tint, 1.0f); // blend=1 -> icon takes the tint color
     C2D_DrawImageAt(img, cx - size * 0.5f, cy - size * 0.5f, 0.5f, &t, sx, sy);
+}
+
+void UIManager::drawDeco(Deco d, float cx, float cy, float size) {
+    if (!sprites_) return;
+    const int idx = static_cast<int>(d);
+    if (idx < 0 || idx >= static_cast<int>(C2D_SpriteSheetCount(sprites_))) return;
+    C2D_Image img = C2D_SpriteSheetGetImage(sprites_, idx);
+    if (!img.tex || !img.subtex) return;
+    // `size` is the target HEIGHT; width follows to preserve aspect (so non-square
+    // sprites like the winged emblem aren't distorted). Square sprites (stars) are
+    // unaffected. Untinted so the artwork keeps its own colors.
+    const float sc = size / img.subtex->height;
+    const float w  = img.subtex->width * sc;
+    C2D_DrawImageAt(img, cx - w * 0.5f, cy - size * 0.5f, 0.5f, nullptr, sc, sc);
+}
+
+float UIManager::drawStars(int filled, int count, float cx, float cy, float size) {
+    if (count <= 0) return 0.0f;
+    const float pitch = size + 2.0f;
+    const float total = count * pitch - 2.0f;
+    float x = cx - total * 0.5f + size * 0.5f; // center of the first star
+    for (int i = 0; i < count; ++i) {
+        drawDeco(i < filled ? Deco::StarFull : Deco::StarEmpty, x, cy, size);
+        x += pitch;
+    }
+    return total;
+}
+
+void UIManager::drawBar(float x, float y, float w, float h, float t, Deco fill) {
+    if (t < 0.0f) t = 0.0f;
+    if (t > 1.0f) t = 1.0f;
+
+    if (!sprites_) { // atlas missing: fall back to the vector bar in a matching color
+        u32 c;
+        switch (fill) {
+            case Deco::BarYellow: c = toC2D(theme::kBarEnergy); break;
+            case Deco::BarOrange: c = toC2D(theme::kBarHunger); break;
+            case Deco::BarBlue:   c = toC2D(theme::kBarXp);     break;
+            default:              c = toC2D(theme::kBarHappy);  break;
+        }
+        draw::bar(x, y, w, h, t, toC2D(theme::kBarBack), c);
+        return;
+    }
+
+    const int cnt = static_cast<int>(C2D_SpriteSheetCount(sprites_));
+    auto blit = [&](Deco d, float bw) {
+        const int idx = static_cast<int>(d);
+        if (idx < 0 || idx >= cnt) return;
+        C2D_Image im = C2D_SpriteSheetGetImage(sprites_, idx);
+        if (!im.tex || !im.subtex) return;
+        C2D_DrawImageAt(im, x, y, 0.5f, nullptr, bw / im.subtex->width, h / im.subtex->height);
+    };
+    blit(Deco::BarTrack, w);                       // empty track, full width
+    if (t > 0.001f) {
+        float fw = w * t;
+        if (fw < h) fw = h;                        // keep a rounded cap visible
+        blit(fill, fw);                            // colored fill, left fraction
+    }
 }
 
 void UIManager::drawTitleBar(Icon icon, const char* title, uint32_t accentRGBA) {

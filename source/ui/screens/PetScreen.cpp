@@ -133,6 +133,17 @@ void PetScreen::drawTop() {
     ui_->drawLocationBg(Location::Town);
     ui_->drawPet(pet, 120.0f, 130.0f);
 
+    // Evolution-stage badge (gem shield; a winged emblem at Legendary) top-left.
+    Deco emblem;
+    switch (pet.stage()) {
+        case EvolutionStage::Teen:          emblem = Deco::EmblemTeen;   break;
+        case EvolutionStage::Adult:         emblem = Deco::EmblemAdult;  break;
+        case EvolutionStage::RareForm:      emblem = Deco::EmblemRare;   break;
+        case EvolutionStage::LegendaryForm: emblem = Deco::EmblemLegend; break;
+        default:                            emblem = Deco::EmblemBaby;   break;
+    }
+    ui_->drawDeco(emblem, 42.0f, 44.0f, 30.0f);
+
     // Title + current mood (derived from needs).
     char line[80];
     std::snprintf(line, sizeof(line), "%s the %s", pet.name(), speciesName(pet.species()));
@@ -153,14 +164,14 @@ void PetScreen::drawTop() {
     // Stat card on the right with icons: happiness / energy / hunger / xp.
     const float px = 252, pw = 140;
     draw::card(px, 48, pw, 184, 14, toC2D(kBgPanel), toC2D(kButtonShadow));
-    auto stat = [&](Icon ic, uint32_t col, float t, float y) {
+    auto stat = [&](Icon ic, uint32_t col, Deco fill, float t, float y) {
         ui_->drawIcon(ic, px + 18, y + 8, 18, toC2D(col));
-        draw::bar(px + 32, y + 2, pw - 44, 12, t, toC2D(kBarBack), toC2D(col));
+        ui_->drawBar(px + 32, y + 2, pw - 44, 12, t, fill);
     };
-    stat(Icon::Happy,  kBarHappy,  pet.happiness() / 100.0f, 58);
-    stat(Icon::Energy, kBarEnergy, pet.energy()    / 100.0f, 84);
-    stat(Icon::Apple,  kBarHunger, pet.hunger()    / 100.0f, 110);
-    stat(Icon::Star,   kBarXp,     pet.levelProgress(),      136);
+    stat(Icon::Happy,  kBarHappy,  Deco::BarPink,   pet.happiness() / 100.0f, 58);
+    stat(Icon::Energy, kBarEnergy, Deco::BarYellow, pet.energy()    / 100.0f, 84);
+    stat(Icon::Apple,  kBarHunger, Deco::BarOrange, pet.hunger()    / 100.0f, 110);
+    stat(Icon::Star,   kBarXp,     Deco::BarBlue,   pet.levelProgress(),      136);
     ui_->drawIcon(Icon::Friends, px + 18, 170, 18, toC2D(kSecondary));
     std::snprintf(line, sizeof(line), "%lu met", (unsigned long)pet.streetpassEncounters());
     draw::textLeft(font, buf, line, px + 32, 164, 0.40f, toC2D(kText));
