@@ -1,10 +1,3 @@
-# Development has been paused...
-Hey, I am taking a break from almost everything. This includes Juxt, Discord, And PetPal Development. Im in a really bad mindset and have a lot of personal issues to deal with. I will be back when I feel better and have the time to work on PetPal again.
-
-All PetPal functions will continue to work as expected during this pause, no new updates will be released.
-Thanks to everyone who supported the project, I hope to return soon.
-Thanks pals, [Abi](https://github.com/DisLoPik) 
-
 # 🐾 PetPal — a StreetPass-style Virtual Pet for the Nintendo 3DS
 
 PetPal is a homebrew virtual-pet game in the spirit of the StreetPass era. You
@@ -170,7 +163,11 @@ PetPal/
 | [ROADMAP.md](docs/ROADMAP.md) | Implementation phases and future features |
 
 ## 🚧 Status
+<<<<<<< HEAD
 Current release: **v0.1.7** (`kAppVersion` in `include/core/Types.h`; save format
+=======
+Current release: **v0.1.6** (`kAppVersion` in `include/core/Types.h`; save format
+>>>>>>> c0f359cf14676d48776da729b7e8f475566b1317
 **v4**). The full core loop, care/mood/streak system, internet passes, phone
 linking + pet continuity, minigame, and profile badges are implemented and the
 model layer is covered by host tests. Known rough edges / planned: an in-app food
