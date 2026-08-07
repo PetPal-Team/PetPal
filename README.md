@@ -162,19 +162,6 @@ PetPal/
 | [UI_SYSTEM.md](docs/UI_SYSTEM.md) | Screen stack, widgets, animation engine, rendering |
 | [ROADMAP.md](docs/ROADMAP.md) | Implementation phases and future features |
 
-## 🚧 Status
-<<<<<<< HEAD
-Current release: **v0.1.7** (`kAppVersion` in `include/core/Types.h`; save format
-=======
-Current release: **v0.1.6** (`kAppVersion` in `include/core/Types.h`; save format
->>>>>>> c0f359cf14676d48776da729b7e8f475566b1317
-**v4**). The full core loop, care/mood/streak system, internet passes, phone
-linking + pet continuity, minigame, and profile badges are implemented and the
-model layer is covered by host tests. Known rough edges / planned: an in-app food
-picker on the 3DS (feeding auto-picks today; the Android app has a picker), an
-evolution cutscene, and rendering the remaining accessories/styles. Contributions
-and bug reports welcome.
-
 ## 📄 License & credits
 Released under the [MIT License](LICENSE). Homebrew and non-commercial in spirit —
 **not affiliated with Nintendo**. "Nintendo 3DS" and "StreetPass" are trademarks
