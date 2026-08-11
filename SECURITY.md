@@ -7,8 +7,8 @@ receives security updates — please update before reporting.
 
 | Version        | Supported          |
 | -------------- | ------------------ |
-| 0.1.4 (latest) | :white_check_mark: |
-| < 0.1.4        | :x:                |
+| 0.1.7 (latest) | :white_check_mark: |
+| < 0.1.7        | :x:                |
 
 ## Reporting a Vulnerability
 
