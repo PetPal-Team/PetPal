@@ -1,0 +1,417 @@
+# ============================================================================
+#   PetPal — Textos de la interfaz 3DS  ·  Español castellano (es)  ·  SOURCE LOCALE
+# ============================================================================
+#                      Spanish translation by @vxcky.ss
+# ============================================================================
+
+
+# ── App ──────────────────────────────────────────────────────────────────────
+APP.NAME = PetPal
+
+
+# ── Species · names ──────────────────────────────  # src: source/core/Names.cpp
+SPECIES.FOX     = Zorro
+SPECIES.CAT     = Gato
+SPECIES.BUNNY   = Conejo
+SPECIES.DRAGON  = Dragón
+SPECIES.SLIME   = Limo
+SPECIES.ROBOT   = Robot
+SPECIES.AXOLOTL = Ajolote
+
+# ── Species · descriptions ───────────────────────  # src: source/core/Names.cpp
+SPECIES_DESC.FOX     = Un inteligente zorrito con una cola esponjosa.
+SPECIES_DESC.CAT     = Un gatito al que le gusta dormir al sol.
+SPECIES_DESC.BUNNY   = Un amable conejito lleno de curiosidad.
+SPECIES_DESC.DRAGON  = Una cría de dragón en busca de leyendas.
+SPECIES_DESC.SLIME   = Un limo tembloroso, elegante y saltarín.
+SPECIES_DESC.ROBOT   = Un robot meticuloso que estudia el mundo.
+SPECIES_DESC.AXOLOTL = Un sonriente ajolote que ama el agua fresca.
+
+# ── Species · personalities ──────────────────────  # src: source/core/Names.cpp
+SPECIES_PERSONALITY.FOX     = Curioso, energético, y ama explorar.
+SPECIES_PERSONALITY.CAT     = Calmado, quisquilloso pero amoroso.
+SPECIES_PERSONALITY.BUNNY   = Dulce, tímido y siempre busca hacer amigos.
+SPECIES_PERSONALITY.DRAGON  = Valiente, aventurero y en busca de tesoros.
+SPECIES_PERSONALITY.SLIME   = Juguetón, blandito y siempre animado.
+SPECIES_PERSONALITY.ROBOT   = Lógico, colecciona aparatos, ama la tecnología.
+SPECIES_PERSONALITY.AXOLOTL = Tranquilo, amable y un poco travieso.
+
+
+# ── Colors ───────────────────────────────────────  # src: source/core/Names.cpp
+COLOR.RED    = Rojo
+COLOR.ORANGE = Naranja
+COLOR.YELLOW = Amarillo
+COLOR.GREEN  = Verde
+COLOR.BLUE   = Azul
+COLOR.PURPLE = Morado
+COLOR.PINK   = Rosa
+COLOR.BLACK  = Negro
+COLOR.WHITE  = Blanco
+COLOR.BROWN  = Marrón
+
+
+# ── Accessories ──────────────────────────────────  # src: source/core/Names.cpp
+ACCESSORY.NONE       = Ninguno
+ACCESSORY.BOW        = Lacito
+ACCESSORY.TOP_HAT    = Sombrero
+ACCESSORY.CROWN      = Corona
+ACCESSORY.SCARF      = Bufanda
+ACCESSORY.GLASSES    = Gafas
+ACCESSORY.FLOWER     = Flor
+ACCESSORY.WIZARD_HAT = Sombrero de mago
+ACCESSORY.CAPE       = Capa
+ACCESSORY.BACKPACK   = Mochila
+ACCESSORY.HEADPHONES = Auriculares
+ACCESSORY.DOG_HAT    = Gorro de perrito
+
+
+# ── Styles ───────────────────────────────────────  # src: source/core/Names.cpp
+STYLE.CLASSIC     = Clásico
+STYLE.FANTASY     = Fantasía
+STYLE.CYBER       = Cibernético
+STYLE.ROYAL       = Realeza
+STYLE.SPACE       = Espacio
+STYLE.PIRATE      = Pirata
+STYLE.RETRO_PIXEL = Retro Pixel
+STYLE.HALLOWEEN   = Halloween
+STYLE.WINTER      = Invierno
+STYLE.SPRING      = Primavera
+
+
+# ── Evolution stages ─────────────────────────────  # src: source/core/Names.cpp
+STAGE.BABY      = Bebé
+STAGE.TEEN      = Adolescente
+STAGE.ADULT     = Adulto
+STAGE.RARE      = Forma inusual
+STAGE.LEGENDARY = Forma legendaria
+
+
+# ── Friendship levels ────────────────────────────  # src: source/core/Names.cpp
+FRIENDSHIP.STRANGER     = Extraño
+FRIENDSHIP.ACQUAINTANCE = Conocido
+FRIENDSHIP.FRIEND       = Amigo
+FRIENDSHIP.BEST_FRIEND  = Mejor amigo
+FRIENDSHIP.LEGENDARY    = Amigo legendario
+
+
+# ── Moods ────────────────────────────────────────  # src: source/core/Names.cpp
+MOOD.HAPPY   = Feliz
+MOOD.CONTENT = Contenta
+MOOD.HUNGRY  = Hambrienta
+MOOD.TIRED   = Cansada
+MOOD.SAD     = Triste
+
+
+# ── Adventure locations ──────────────────────────  # src: source/core/Names.cpp
+LOCATION.TOWN          = Pueblo
+LOCATION.FOREST        = Bosque
+LOCATION.BEACH         = Playa
+LOCATION.ARCADE        = Recreativos
+LOCATION.CASTLE        = Castillo
+LOCATION.SPACE_STATION = Estación espacial
+LOCATION.MOUNTAIN      = Montaña
+LOCATION.GARDEN        = Jardín
+LOCATION.HAUNTED_MANOR = Mansión encantada
+LOCATION.CRYSTAL_CAVE  = Cueva de cristal
+
+
+# ── Adventure durations ──────────────────────────  # src: source/core/Names.cpp
+DURATION.SHORT  = Corta
+DURATION.MEDIUM = Media
+DURATION.LONG   = Larga
+
+
+# ── Items · names ────────────────────────────────  # src: source/core/Names.cpp
+ITEM.APPLE           = Manzana
+ITEM.COOKIE          = Galleta
+ITEM.CAKE            = Tarta
+ITEM.FISH            = Pescado
+ITEM.BERRY           = Baya
+ITEM.CARROT          = Zanahoria
+ITEM.ICE_CREAM       = Helado
+ITEM.RAINBOW_COOKIE  = Galleta arcoíris
+ITEM.GOLDEN_APPLE    = Manzana dorada
+ITEM.COSMIC_CANDY    = Chuche cósmica
+ITEM.SHELL           = Concha
+ITEM.GEM             = Gema
+ITEM.FEATHER         = Pluma
+ITEM.RELIC           = Reliquia
+ITEM.STICKER         = Pegatina
+ITEM.COMMON_SHARD    = Fragmento común
+ITEM.RARE_SHARD      = Fragmento inusual
+ITEM.LEGENDARY_SHARD = Fragmento legendario
+# ── Items · descriptions ─────────────────────────  # src: source/core/Names.cpp
+ITEM_DESC.APPLE           = Una confiable y crujiente manzana.
+ITEM_DESC.COOKIE          = Una galleta dulce que a todos nos gusta.
+ITEM_DESC.CAKE            = Un esponjoso trozo de tarta.
+ITEM_DESC.FISH            = Pescado fresco. A gatito le gusta.
+ITEM_DESC.BERRY           = Una baya jugosa del bosque.
+ITEM_DESC.CARROT          = Una crujiente zanahoria del jardín.
+ITEM_DESC.ICE_CREAM       = Un rico dulce para las tardes calurosas.
+ITEM_DESC.RAINBOW_COOKIE  = Una galleta resplandeciente. Sabe a felicidad.
+ITEM_DESC.GOLDEN_APPLE    = Una lustrosa manzana legendaria.
+ITEM_DESC.COSMIC_CANDY    = Golosina que proviene de las estrellas.
+ITEM_DESC.SHELL           = Una concha bonita de la playa.
+ITEM_DESC.GEM             = Una gema brillante.
+ITEM_DESC.FEATHER         = Una suave pluma iridiscente.
+ITEM_DESC.RELIC           = Una misteriosa reliquia antigua.
+ITEM_DESC.STICKER         = Una pegatina coleccionable para tu diario.
+ITEM_DESC.COMMON_SHARD    = Un fragmento común lleno de energía.
+ITEM_DESC.RARE_SHARD      = Un fragmento inusual que emite luz.
+ITEM_DESC.LEGENDARY_SHARD = Un fragmento legendario repleto de poder.
+
+
+# ── Achievements · names ─────────────────────────  # src: source/core/Names.cpp
+ACHIEVEMENT.FIRST_FRIEND         = Primer amigo
+ACHIEVEMENT.TEN_FRIENDS          = 10 Amigos
+ACHIEVEMENT.HUNDRED_FRIENDS      = 100 Amigos
+ACHIEVEMENT.FIRST_EVOLUTION      = Primera evolución
+ACHIEVEMENT.LEGENDARY_PET        = Mascota legendaria
+ACHIEVEMENT.WORLD_TRAVELER       = Gran viajero
+ACHIEVEMENT.ACCESSORY_COLLECTOR  = Coleccionista de accesorios
+ACHIEVEMENT.EXPLORER             = Explorador
+
+# ── Achievements · descriptions ──────────────────  # src: source/core/Names.cpp
+ACHIEVEMENT_DESC.FIRST_FRIEND        = Conoce a tu primera mascota
+ACHIEVEMENT_DESC.TEN_FRIENDS         = Haz 10 amigos.
+ACHIEVEMENT_DESC.HUNDRED_FRIENDS     = Haz 100 amigos.
+ACHIEVEMENT_DESC.FIRST_EVOLUTION     = Evoluciona a tu mascota por primera vez.
+ACHIEVEMENT_DESC.LEGENDARY_PET       = Alcanza la evolución: Forma legendaria.
+ACHIEVEMENT_DESC.WORLD_TRAVELER      = Desbloquea todos los lugares.
+ACHIEVEMENT_DESC.ACCESSORY_COLLECTOR = Desbloquea todos los accesorios.
+ACHIEVEMENT_DESC.EXPLORER            = Completa 25 aventuras.
+
+
+# ── Onboarding ───────────────────────  # src: source/ui/screens/OnboardingScreen.cpp
+ONBOARD.CHOOSE_TITLE = Elige a tu PetPal!
+ONBOARD.CHOOSE_HINT  = Elige un amigo para comenzar
+ONBOARD.NAME_KBD     = Ponle un nombre a tu mascota
+HINT.ONBOARD_CHOOSE  = Elige
+
+
+# ── Main menu ─────────────────────────  # src: source/ui/screens/MainMenuScreen.cpp
+MENU.PET       = Cuidar
+MENU.FRIENDS   = Amigos
+MENU.ADVENTURE = Aventura
+MENU.JOURNAL   = Diario
+MENU.STYLE     = Aspecto
+MENU.SHOP      = Tienda
+MENU.AWARDS    = Logros
+MENU.SETTINGS  = Opciones
+MENU.EXIT_HINT = START: salir de PetPal
+MENU.NEWS_HINT = Noticias
+
+
+# ── Pet screen ────────────────────────  # src: source/ui/screens/PetScreen.cpp
+PET.ACTION_FEED   = Alimentar
+PET.ACTION_PLAY   = Jugar
+PET.ACTION_REST   = Descansar
+PET.ACTION_PET    = Acariciar
+PET.ACTION_TALK   = Hablar
+PET.ACTION_EVOLVE = Evolucionar
+PET.CARE_HEADER   = Cuidados para tu mascota
+PET.EVOLVED       = Tu mascota evolucionó!
+PET.NOT_READY     = Todavía no está listo para evolucionar.
+# ph: {level} = the pet's new level number
+PET.LEVEL_UP      = Tu mascota subió al nivel {level}!
+# ph: {mood} = a MOOD.* value (Happy, Hungry, …)
+PET.FEELING       = Tu mascota está {mood}
+# ph: {days} = number of days. Note: English adds "s" for plurals; use your
+#     language's own plural rule for the day count.
+PET.STREAK_ONE    = Racha: {days} día
+PET.STREAK_MANY   = Racha: {days} días
+HINT.PET_BACK     = Atrás
+HINT.PET_ARCADE   = Arcade
+
+# ── Pet care results (toasts) ─────────  # src: source/core/Game.cpp
+# ph: {name} = pet's name, {food} = an ITEM.* food name
+PET.FEED_OK   = Ñam! A {name} le encantó comerse su {food}.
+PET.FEED_NONE = No tienes esa comida.
+PET.PLAY_OK   = Qué divertido!
+PET.REST_OK   = Zzz... una buena siestecita.
+PET.PET_OK    = Qué lindo!
+PET.TALK_OK   = Habéis hablado bastante.
+# ph: {score} = mini-game score, {coins} = coins earned
+PET.ARCADE_RESULT = Puntuación: {score}! +{coins} monedas
+
+
+# ── Friends / StreetPass ──────────────  # src: source/ui/screens/FriendsScreen.cpp
+# ph: {count} = passes received, {new} = new friends made
+FRIENDS.GOT_PASSES = Tuviste {count} encuentro(s) - {new} nuevo(s) amigo(s)!
+FRIENDS.NO_PASSES  = No tienes encuentros por ahora.
+# ph: {count} = number of friends
+FRIENDS.TITLE      = Amigos  ({count})
+FRIENDS.EMPTY      = Aún no tienes amigos!
+FRIENDS.EMPTY_HINT = Haz StreetPass con otros jugadores para conocer mascotas.
+FRIENDS.CHECK_HINT = Pulsa X para comprobar los encuentros.
+STREETPASS.UNAVAILABLE = StreetPass: no disponible
+STREETPASS.SETTING_UP  = StreetPass: configurando...
+# ph: {state} = STREETPASS.ON or STREETPASS.IDLE, {waiting} = messages waiting
+STREETPASS.STATUS  = StreetPass: {state}  -  {waiting} en espera
+STREETPASS.ON      = activo
+STREETPASS.IDLE    = en modo espera
+# ph: {species}=SPECIES.*, {level}=number, {stage}=STAGE.*
+FRIENDS.INFO_LINE  = {species}  -  Nivel {level}  -  {stage}
+# ph: {friendship}=FRIENDSHIP.*, {count}=times met
+FRIENDS.MET_LINE   = {friendship}  -  Visto {count} vez/veces
+# ph: {date} = the date first met
+FRIENDS.FIRST_MET  = Primer encuentro: {date}
+HINT.FRIENDS_BACK  = Atrás
+HINT.FRIENDS_CHECK = Comprobar
+
+
+# ── Adventures ────────────────────────  # src: source/ui/screens/AdventuresScreen.cpp
+ADVENTURE.TITLE        = Aventuras
+ADVENTURE.SEND_BTN     = Enviar!
+ADVENTURE.COLLECT_BTN  = Recoger!
+ADVENTURE.DEPARTED     = Allá va a recorrer su gran aventura!
+ADVENTURE.TOO_TIRED    = Está demasiado cansado, dale de comer primero!
+ADVENTURE.BACK_READY   = Ha vuelto! Toca Recoger.
+# ph: {reward}=coins from Game "Got {coins} coins + {items} item(s)!"
+# ph: {coins}=coins earned, {items}=number of items found
+ADVENTURE.REWARD       = Consiguió {coins} monedas + {items} objeto(s)!
+# ph: {mins}=minutes, {secs}=seconds (2 digits). Time remaining, e.g. "Back in 2:05"
+ADVENTURE.BACK_IN      = Volverá en {mins}:{secs} minutos.
+# ph: {place} = a LOCATION.* value
+ADVENTURE.WHERE_TO     = A dónde? {place}
+# ph: {duration} = a DURATION.* value
+ADVENTURE.DURATION     = Duración: {duration}
+ADVENTURE.CONTROLS     = Arriba/Abajo: lugar   Izquierda/Derecha: tiempo
+ADVENTURE.UNLOCKED     = Lugares desbloqueados:
+HINT.ADVENTURE_BACK    = Atrás
+
+
+# ── Journal ───────────────────────────  # src: source/ui/screens/JournalScreen.cpp
+JOURNAL.TITLE      = Diario de tu mascota
+JOURNAL.EMPTY      = Pronto comenzará la historia...
+JOURNAL.SCROLL     = Arriba / Abajo para desplazarse
+# ph: {n} = current entry number, {total} = total entries
+JOURNAL.ENTRY_OF   = Entrada número {n} de {total}
+HINT.JOURNAL_BACK  = Atrás
+
+# ── Journal entries (auto-written) ────  # src: source/journal/Journal.cpp, source/core/Game.cpp
+JOURNAL.FIRST_ENTRY = Hoy empieza mi aventura! Qué ganas de hacer amigos!
+# ph: {name}=met pet's name, {species}=SPECIES.*  (one of three is picked at random)
+JOURNAL.MET_1 = Hoy conocí a {name} el {species}. Qué emocionante!
+JOURNAL.MET_2 = Hice un nuevo amigo: un {species} llamado... em, {name}!
+JOURNAL.MET_3 = {name} el {species} me saludó. Le saludé también!
+# ph: {place} = a LOCATION.* value
+JOURNAL.EXPLORED = He explorado este sitio: {place}.
+# ph: {item} = an ITEM.* value
+JOURNAL.FOUND = He encontrado esto: {item}!
+# ph: {stage} = a STAGE.* value
+JOURNAL.EVOLVED = He evolucionado a: {stage}! Me siento diferente...
+# ph: {achievement} = an ACHIEVEMENT.* name
+JOURNAL.ACHIEVEMENT = Logro desbloqueado: {achievement}!
+
+
+# ── Style / Dress Up ──────────────────  # src: source/ui/screens/CustomizationScreen.cpp
+STYLE_SCREEN.TITLE     = Apariencia
+STYLE_SCREEN.CAT_COLOR1    = Color 1
+STYLE_SCREEN.CAT_COLOR2    = Color 2
+STYLE_SCREEN.CAT_ACCESSORY = Accessorio
+STYLE_SCREEN.CAT_STYLE     = Estilo
+STYLE_SCREEN.LOCKED    = Bloquear
+HINT.STYLE_CATEGORY    = Categoría
+HINT.STYLE_APPLY       = Aplicar
+HINT.STYLE_BACK        = Atrás
+
+
+# ── Shop ──────────────────────────────  # src: source/ui/screens/ShopScreen.cpp
+SHOP.TITLE       = Tienda
+# ph: {item} = an ITEM.* name
+SHOP.BOUGHT      = Compraste {item}!
+SHOP.NO_COINS    = No te llegan las monedas!
+# ph: {price} = coin price, {owned} = quantity owned
+SHOP.PRICE_OWNED = Precio {price}     Tienes {owned}
+HINT.SHOP_BUY    = Comprar
+HINT.SHOP_BACK   = Atrás
+
+
+# ── Awards / Achievements screen ──────  # src: source/ui/screens/AchievementsScreen.cpp
+# ph: {got} = number unlocked, {total} = total achievements
+AWARDS.COUNT       = Tienes  {got} logros de {total}
+# ph: {kind}=AWARDS.KIND_ACCESSORY or AWARDS.KIND_STYLE, {name}=the reward's name
+AWARDS.REWARD      = Recompensa: {kind} {name}
+AWARDS.KIND_ACCESSORY = Accessorio
+AWARDS.KIND_STYLE     = Estilo
+AWARDS.UNLOCKED    = DESBLOQUEADO!
+AWARDS.LOCKED_HINT = Sigue jugando para desbloquear esto.
+HINT.AWARDS_BACK   = Atrás
+
+
+# ── Settings ──────────────────────────  # src: source/ui/screens/SettingsScreen.cpp
+SETTINGS.TITLE          = Configuración
+SETTINGS.REDEEMED       = Canjeado!
+SETTINGS.CODE_REJECTED  = Código no aceptado.
+SETTINGS.CODE_KBD       = Introduce un código
+SETTINGS.LINK_KBD       = ID de tu teléfono: PP-XXXX-XXXX
+SETTINGS.LINKED_OK      = Vinculado a tu teléfono!
+SETTINGS.LINK_FAILED    = Vinculación fallida, comprueba el ID.
+SETTINGS.BACKUP_SAVED   = Copia de seguridad guardada!
+SETTINGS.CHECKING_CODE  = Comprobando código...
+# ph: {mins} = total play time in minutes
+SETTINGS.PLAY_TIME      = Tiempo de juego: {mins} minutos
+# ph: {date} = last-saved date/time
+SETTINGS.LAST_SAVED     = Último guardado: {date}
+# ph: {id} = the Pet ID (PP-XXXX-XXXX) or SETTINGS.OFFLINE when not signed in
+SETTINGS.PET_ID         = ID de tu mascota: {id}
+SETTINGS.OFFLINE        = (offline)
+# ph: {major}.{minor}.{patch} = version numbers, e.g. "PetPal v0.1.6"
+SETTINGS.VERSION        = PetPal v{major}.{minor}.{patch}
+# rows (labels)
+SETTINGS.ROW_MUSIC      = Música
+SETTINGS.ROW_SFX        = Efectos de sonido
+SETTINGS.ROW_AUTOSAVE   = Auto-guardado
+SETTINGS.ROW_RUMBLE     = Vibración
+SETTINGS.ROW_ENTER_CODE = Introducir código
+SETTINGS.ROW_LINK_PHONE = Vincular al móvil
+SETTINGS.ROW_EXPORT     = Exportar copia de seguridad
+# row values
+SETTINGS.VAL_ON      = On
+SETTINGS.VAL_OFF     = Off
+SETTINGS.VAL_PRESS_A = Pulsa A
+SETTINGS.VAL_LINKED  = Vinculado
+# ph: {pct} = a volume percentage, e.g. "80%"
+SETTINGS.VAL_PERCENT = {pct}%
+HINT.SETTINGS_BACK   = Atrás
+
+
+# ── Announcements / News ──────────────  # src: source/ui/screens/AnnouncementsScreen.cpp
+NEWS.TITLE          = Noticias
+# ph: {count} = number of announcements
+NEWS.TITLE_COUNT    = Hay  ({count}) noticias.
+NEWS.LOADING        = Cargando noticias...
+NEWS.LOAD_FAILED    = No se pudieron cargar las noticias. Prueba más tarde.
+NEWS.SERVER_FAIL    = No se pudo cargar el servidor.
+NEWS.SERVER_HINT    = Comprueba tu conexión y vuelve a abrir las noticias.
+NEWS.EMPTY          = Aún no hay anuncios.
+NEWS.EMPTY_HINT     = Vuelve pronto!
+# top-screen scroll affordances (L/R shoulder buttons)
+NEWS.SCROLL_UP      = L arriba
+NEWS.SCROLL_MORE    = R más
+HINT.NEWS_BACK      = Atrás
+HINT.NEWS_SCROLL    = Desplazarse
+
+
+# ── Banned screen (401) ───────────────  # src: source/ui/UIManager.cpp
+# ph: {id} = the player's Pet ID
+BANNED.PET_ID_LINE  = ID de mascota: {id}
+BANNED.MESSAGE      = Esta mascota ha sido baneada.
+BANNED.CONTACT      = Contacta con soporte indicando el ID de tu mascota.
+BANNED.EXIT         = Pulsa START para salir.
+
+
+# ── Mini-game: Star Tap ───────────────  # src: source/ui/UIManager.cpp
+MINIGAME.TITLE     = Toque estelar
+# ph: {score} = current score
+MINIGAME.SCORE     = Puntuación: {score}
+# ph: {secs} = seconds left
+MINIGAME.TIME      = Tiempo: {secs}s
+MINIGAME.TAP_HINT  = Toca el punto dorado de abajo!
+MINIGAME.QUIT      = START: salir
+
+
+# ── Update prompt ─────────────────────  # src: source/core/Game.cpp
+UPDATE.REQUIRED = Por favor actualiza tu aplicación.
+UPDATE.CLOSE    = Pulsa START para salir.
