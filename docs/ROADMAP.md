@@ -45,7 +45,7 @@ Status legend: ✅ done in this starter · 🔨 partial / stubbed · ⬜ planned
 * ✅ All 9 screens functional with touch + D-pad.
 * ✅ Procedural `PetRenderer` (animated) as art placeholder.
 * 🔨 Slide transitions are hooked (tween) but screens don't yet offset by it.
-* ⬜ Particle bursts for celebrations.
+* ✅ Particle bursts for celebrations.
 
 ## Phase 5 — Audio ✅
 * ✅ `ndsp` init + audio layer (streamed looping BGM + SFX channels).
@@ -56,8 +56,8 @@ Status legend: ✅ done in this starter · 🔨 partial / stubbed · ⬜ planned
 ## Phase 6 — Art & polish ⬜
 * ⬜ Author species sprites per stage + animation frames; build the citro2d
   atlas and swap `PetRenderer` to sprites.
-* ⬜ Menu icons, backgrounds, environment art per location.
-* ⬜ Homebrew icon/banner (`icon.png`, `banner.png`) + SMDH metadata.
+* 🔨 Menu icons, backgrounds, environment art per location.
+* 🔨 Homebrew icon/banner (`icon.png`, `banner.png`) + SMDH metadata.
 
 ## Phase 7 — Content depth ✅ / 🔨
 * ✅ Shop screen (spend coins on food / rare treats / evolution shards).
@@ -108,7 +108,6 @@ them with minimal churn:
   with the relay via `DualTransport`). Console-to-console *exchange* is still being
   verified; the internet relay `HttpPassTransport` remains the reliable path (see
   NETPASS_INTEGRATION.md).
-* `celebrate()` plays audio but does not yet spawn particles.
 * Slide transition value is computed but not applied to screen draw offsets.
 * Several accessories/styles render as no-ops in `PetRenderer` until art lands.
 * Feeding auto-selects food on the 3DS; a picker is planned (Android has one).
